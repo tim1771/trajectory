@@ -1,8 +1,18 @@
 import Groq from "groq-sdk";
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+// Lazy initialization to avoid build-time errors
+let groqClient: Groq | null = null;
+
+function getGroqClient(): Groq {
+  if (!groqClient) {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      throw new Error("GROQ_API_KEY is not set");
+    }
+    groqClient = new Groq({ apiKey });
+  }
+  return groqClient;
+}
 
 export const SYSTEM_PROMPT = `You are an AI wellness coach for Trajectory, a holistic wellness app. You help users improve their physical health, mental wellness, and financial well-being.
 
@@ -41,6 +51,7 @@ ${userContext.recentHabits?.length ? `- Recent habits: ${userContext.recentHabit
 ${userContext.challenges?.length ? `- Challenges they mentioned: ${userContext.challenges.join(", ")}` : ""}`;
   }
 
+  const groq = getGroqClient();
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     messages: [
@@ -86,6 +97,7 @@ Format as JSON with this structure:
   "dailyTip": "motivational message for day 1"
 }`;
 
+  const groq = getGroqClient();
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     messages: [
@@ -116,4 +128,4 @@ Format as JSON with this structure:
   }
 }
 
-export default groq;
+export { getGroqClient };
