@@ -9,6 +9,11 @@ import {
   Target,
   Brain,
   Wallet,
+  Users,
+  Sparkles as SparklesIcon,
+  Lightbulb,
+  Briefcase,
+  Leaf,
   MessageSquare,
   BookOpen,
   Trophy,
@@ -21,11 +26,19 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { useUserStore } from "@/stores/userStore";
 
-const navItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/dashboard/physical", icon: Target, label: "Physical" },
-  { href: "/dashboard/mental", icon: Brain, label: "Mental" },
-  { href: "/dashboard/fiscal", icon: Wallet, label: "Fiscal" },
+// 8 Dimensions of Wellness navigation
+const pillarItems = [
+  { href: "/dashboard/physical", icon: Target, label: "Physical", color: "text-purple-400" },
+  { href: "/dashboard/mental", icon: Brain, label: "Mental", color: "text-pink-400" },
+  { href: "/dashboard/fiscal", icon: Wallet, label: "Fiscal", color: "text-cyan-400" },
+  { href: "/dashboard/social", icon: Users, label: "Social", color: "text-orange-400" },
+  { href: "/dashboard/spiritual", icon: SparklesIcon, label: "Spiritual", color: "text-violet-400" },
+  { href: "/dashboard/intellectual", icon: Lightbulb, label: "Intellectual", color: "text-yellow-400" },
+  { href: "/dashboard/occupational", icon: Briefcase, label: "Occupational", color: "text-green-400" },
+  { href: "/dashboard/environmental", icon: Leaf, label: "Environmental", color: "text-teal-400" },
+];
+
+const toolItems = [
   { href: "/dashboard/coach", icon: MessageSquare, label: "AI Coach" },
   { href: "/dashboard/library", icon: BookOpen, label: "Library" },
   { href: "/dashboard/achievements", icon: Trophy, label: "Achievements" },
@@ -139,8 +152,31 @@ export default function DashboardLayout({
           )}
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1">
-            {navItems.map((item) => {
+          <nav className="flex-1 space-y-1 overflow-y-auto">
+            {/* Dashboard Home */}
+            <Link
+              href="/dashboard"
+              onClick={() => setSidebarOpen(false)}
+              className={`
+                flex items-center gap-3 px-4 py-3 rounded-xl
+                transition-all duration-200
+                ${pathname === "/dashboard"
+                  ? "bg-purple-500/20 text-white"
+                  : "text-white/60 hover:bg-white/5 hover:text-white"
+                }
+              `}
+            >
+              <LayoutDashboard className="w-5 h-5" />
+              <span>Dashboard</span>
+            </Link>
+
+            {/* Wellness Pillars Section */}
+            <div className="pt-4 pb-2">
+              <div className="px-4 text-xs font-semibold text-white/40 uppercase tracking-wider">
+                Wellness Dimensions
+              </div>
+            </div>
+            {pillarItems.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link
@@ -148,7 +184,35 @@ export default function DashboardLayout({
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
                   className={`
-                    flex items-center gap-3 px-4 py-3 rounded-xl
+                    flex items-center gap-3 px-4 py-2.5 rounded-xl
+                    transition-all duration-200
+                    ${isActive
+                      ? "bg-white/10 text-white"
+                      : "text-white/60 hover:bg-white/5 hover:text-white"
+                    }
+                  `}
+                >
+                  <item.icon className={`w-4 h-4 ${isActive ? item.color : ""}`} />
+                  <span className="text-sm">{item.label}</span>
+                </Link>
+              );
+            })}
+
+            {/* Tools Section */}
+            <div className="pt-4 pb-2">
+              <div className="px-4 text-xs font-semibold text-white/40 uppercase tracking-wider">
+                Tools
+              </div>
+            </div>
+            {toolItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`
+                    flex items-center gap-3 px-4 py-2.5 rounded-xl
                     transition-all duration-200
                     ${isActive
                       ? "bg-purple-500/20 text-white"
@@ -156,14 +220,8 @@ export default function DashboardLayout({
                     }
                   `}
                 >
-                  <item.icon className="w-5 h-5" />
-                  <span>{item.label}</span>
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeNav"
-                      className="absolute left-0 w-1 h-8 bg-purple-500 rounded-r-full"
-                    />
-                  )}
+                  <item.icon className="w-4 h-4" />
+                  <span className="text-sm">{item.label}</span>
                 </Link>
               );
             })}

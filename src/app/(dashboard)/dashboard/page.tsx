@@ -6,13 +6,17 @@ import {
   Target,
   Brain,
   Wallet,
+  Users,
+  Sparkles as SparklesIcon,
+  Lightbulb,
+  Briefcase,
+  Leaf,
   Flame,
   TrendingUp,
   CheckCircle2,
   Plus,
   Sparkles,
   BookOpen,
-  Trophy,
 } from "lucide-react";
 import Link from "next/link";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -21,6 +25,7 @@ import { ProgressRing } from "@/components/ui/ProgressRing";
 import { useUserStore } from "@/stores/userStore";
 import { getGreeting, getLevelFromXP } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import type { WellnessPillar } from "@/types";
 
 export default function DashboardPage() {
   const { profile, habits, setHabits } = useUserStore();
@@ -133,32 +138,75 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Pillar Progress */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <PillarCard
-          pillar="physical"
-          icon={<Target className="w-6 h-6" />}
-          title="Physical"
-          progress={getPillarProgress("physical")}
-          habits={habits.filter((h) => h.pillar === "physical").length}
-          href="/dashboard/physical"
-        />
-        <PillarCard
-          pillar="mental"
-          icon={<Brain className="w-6 h-6" />}
-          title="Mental"
-          progress={getPillarProgress("mental")}
-          habits={habits.filter((h) => h.pillar === "mental").length}
-          href="/dashboard/mental"
-        />
-        <PillarCard
-          pillar="fiscal"
-          icon={<Wallet className="w-6 h-6" />}
-          title="Fiscal"
-          progress={getPillarProgress("fiscal")}
-          habits={habits.filter((h) => h.pillar === "fiscal").length}
-          href="/dashboard/fiscal"
-        />
+      {/* 8 Dimensions of Wellness */}
+      <div>
+        <h2 className="text-xl font-semibold text-white mb-4">8 Dimensions of Wellness</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <PillarCard
+            pillar="physical"
+            icon={<Target className="w-5 h-5" />}
+            title="Physical"
+            progress={getPillarProgress("physical")}
+            habits={habits.filter((h) => h.pillar === "physical").length}
+            href="/dashboard/physical"
+          />
+          <PillarCard
+            pillar="mental"
+            icon={<Brain className="w-5 h-5" />}
+            title="Mental"
+            progress={getPillarProgress("mental")}
+            habits={habits.filter((h) => h.pillar === "mental").length}
+            href="/dashboard/mental"
+          />
+          <PillarCard
+            pillar="fiscal"
+            icon={<Wallet className="w-5 h-5" />}
+            title="Fiscal"
+            progress={getPillarProgress("fiscal")}
+            habits={habits.filter((h) => h.pillar === "fiscal").length}
+            href="/dashboard/fiscal"
+          />
+          <PillarCard
+            pillar="social"
+            icon={<Users className="w-5 h-5" />}
+            title="Social"
+            progress={getPillarProgress("social")}
+            habits={habits.filter((h) => h.pillar === "social").length}
+            href="/dashboard/social"
+          />
+          <PillarCard
+            pillar="spiritual"
+            icon={<SparklesIcon className="w-5 h-5" />}
+            title="Spiritual"
+            progress={getPillarProgress("spiritual")}
+            habits={habits.filter((h) => h.pillar === "spiritual").length}
+            href="/dashboard/spiritual"
+          />
+          <PillarCard
+            pillar="intellectual"
+            icon={<Lightbulb className="w-5 h-5" />}
+            title="Intellectual"
+            progress={getPillarProgress("intellectual")}
+            habits={habits.filter((h) => h.pillar === "intellectual").length}
+            href="/dashboard/intellectual"
+          />
+          <PillarCard
+            pillar="occupational"
+            icon={<Briefcase className="w-5 h-5" />}
+            title="Occupational"
+            progress={getPillarProgress("occupational")}
+            habits={habits.filter((h) => h.pillar === "occupational").length}
+            href="/dashboard/occupational"
+          />
+          <PillarCard
+            pillar="environmental"
+            icon={<Leaf className="w-5 h-5" />}
+            title="Environmental"
+            progress={getPillarProgress("environmental")}
+            habits={habits.filter((h) => h.pillar === "environmental").length}
+            href="/dashboard/environmental"
+          />
+        </div>
       </div>
 
       {/* Today's Habits */}
@@ -280,38 +328,43 @@ function PillarCard({
   habits,
   href,
 }: {
-  pillar: "physical" | "mental" | "fiscal";
+  pillar: WellnessPillar;
   icon: React.ReactNode;
   title: string;
   progress: number;
   habits: number;
   href: string;
 }) {
-  const gradients = {
+  const gradients: Record<WellnessPillar, string> = {
     physical: "from-[#667eea] to-[#764ba2]",
     mental: "from-[#f093fb] to-[#f5576c]",
     fiscal: "from-[#4facfe] to-[#00f2fe]",
+    social: "from-[#f97316] to-[#fb923c]",
+    spiritual: "from-[#8b5cf6] to-[#a78bfa]",
+    intellectual: "from-[#eab308] to-[#fbbf24]",
+    occupational: "from-[#22c55e] to-[#4ade80]",
+    environmental: "from-[#14b8a6] to-[#2dd4bf]",
   };
 
   return (
     <Link href={href}>
       <motion.div
-        whileHover={{ scale: 1.02, y: -5 }}
+        whileHover={{ scale: 1.02, y: -3 }}
         transition={{ duration: 0.2 }}
       >
-        <GlassCard className="relative overflow-hidden" glow={pillar}>
-          <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradients[pillar]} opacity-20 blur-2xl`} />
+        <GlassCard className="relative overflow-hidden p-4">
+          <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${gradients[pillar]} opacity-20 blur-2xl`} />
           
-          <div className="flex items-start justify-between mb-4">
-            <div className={`p-3 rounded-xl bg-gradient-to-br ${gradients[pillar]}`}>
+          <div className="flex items-center justify-between mb-3">
+            <div className={`p-2 rounded-lg bg-gradient-to-br ${gradients[pillar]}`}>
               {icon}
             </div>
-            <ProgressRing progress={progress} size={60} strokeWidth={4} color={pillar} />
+            <ProgressRing progress={progress} size={44} strokeWidth={3} color={pillar} showLabel={false} />
           </div>
 
-          <h3 className="text-xl font-semibold text-white mb-1">{title}</h3>
-          <p className="text-white/60 text-sm">
-            {habits} habit{habits !== 1 ? "s" : ""} tracked
+          <h3 className="text-base font-semibold text-white mb-0.5">{title}</h3>
+          <p className="text-white/60 text-xs">
+            {habits} habit{habits !== 1 ? "s" : ""} • {progress}%
           </p>
         </GlassCard>
       </motion.div>
@@ -347,10 +400,15 @@ function HabitItem({ habit }: { habit: any }) {
     setCompleted(!completed);
   };
 
-  const pillarColors = {
+  const pillarColors: Record<string, string> = {
     physical: "border-l-purple-500",
     mental: "border-l-pink-500",
     fiscal: "border-l-cyan-500",
+    social: "border-l-orange-500",
+    spiritual: "border-l-violet-500",
+    intellectual: "border-l-yellow-500",
+    occupational: "border-l-green-500",
+    environmental: "border-l-teal-500",
   };
 
   return (
@@ -358,7 +416,7 @@ function HabitItem({ habit }: { habit: any }) {
       layout
       className={`
         flex items-center gap-4 p-4 rounded-xl bg-white/5 border-l-4
-        ${pillarColors[habit.pillar as keyof typeof pillarColors]}
+        ${pillarColors[habit.pillar] || "border-l-purple-500"}
         ${completed ? "opacity-60" : ""}
       `}
     >

@@ -10,7 +10,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Pillar colors
+        // Pillar colors - 8 Dimensions of Wellness
         physical: {
           from: "#667eea",
           to: "#764ba2",
@@ -22,6 +22,26 @@ const config: Config = {
         fiscal: {
           from: "#4facfe",
           to: "#00f2fe",
+        },
+        social: {
+          from: "#f97316",
+          to: "#fb923c",
+        },
+        spiritual: {
+          from: "#8b5cf6",
+          to: "#a78bfa",
+        },
+        intellectual: {
+          from: "#eab308",
+          to: "#fbbf24",
+        },
+        occupational: {
+          from: "#22c55e",
+          to: "#4ade80",
+        },
+        environmental: {
+          from: "#14b8a6",
+          to: "#2dd4bf",
         },
         // Glass colors
         glass: {
@@ -37,6 +57,11 @@ const config: Config = {
         "gradient-physical": "linear-gradient(135deg, #667eea, #764ba2)",
         "gradient-mental": "linear-gradient(135deg, #f093fb, #f5576c)",
         "gradient-fiscal": "linear-gradient(135deg, #4facfe, #00f2fe)",
+        "gradient-social": "linear-gradient(135deg, #f97316, #fb923c)",
+        "gradient-spiritual": "linear-gradient(135deg, #8b5cf6, #a78bfa)",
+        "gradient-intellectual": "linear-gradient(135deg, #eab308, #fbbf24)",
+        "gradient-occupational": "linear-gradient(135deg, #22c55e, #4ade80)",
+        "gradient-environmental": "linear-gradient(135deg, #14b8a6, #2dd4bf)",
         "gradient-main": "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
         "gradient-light": "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
       },

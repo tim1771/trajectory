@@ -9,9 +9,15 @@
     --glass-blur: 20px;
     --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     
+    /* 8 Dimensions of Wellness */
     --gradient-physical: linear-gradient(135deg, #667eea, #764ba2);
     --gradient-mental: linear-gradient(135deg, #f093fb, #f5576c);
     --gradient-fiscal: linear-gradient(135deg, #4facfe, #00f2fe);
+    --gradient-social: linear-gradient(135deg, #f97316, #fb923c);
+    --gradient-spiritual: linear-gradient(135deg, #8b5cf6, #a78bfa);
+    --gradient-intellectual: linear-gradient(135deg, #eab308, #fbbf24);
+    --gradient-occupational: linear-gradient(135deg, #22c55e, #4ade80);
+    --gradient-environmental: linear-gradient(135deg, #14b8a6, #2dd4bf);
   }
 }
 
@@ -50,6 +56,26 @@
   
   .pillar-fiscal {
     @apply bg-gradient-fiscal;
+  }
+  
+  .pillar-social {
+    @apply bg-gradient-social;
+  }
+  
+  .pillar-spiritual {
+    @apply bg-gradient-spiritual;
+  }
+  
+  .pillar-intellectual {
+    @apply bg-gradient-intellectual;
+  }
+  
+  .pillar-occupational {
+    @apply bg-gradient-occupational;
+  }
+  
+  .pillar-environmental {
+    @apply bg-gradient-environmental;
   }
   
   .progress-ring {

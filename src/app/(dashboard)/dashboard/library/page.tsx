@@ -7,6 +7,11 @@ import {
   Target,
   Brain,
   Wallet,
+  Users,
+  Sparkles,
+  Lightbulb,
+  Briefcase,
+  Leaf,
   ExternalLink,
   CheckCircle,
   Clock,
@@ -17,7 +22,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { useUserStore } from "@/stores/userStore";
 import { createClient } from "@/lib/supabase/client";
-import type { ReadingContent } from "@/types";
+import type { ReadingContent, WellnessPillar } from "@/types";
 
 // Curated reading content from reputable sources
 const READING_CONTENT: ReadingContent[] = [
@@ -144,11 +149,136 @@ const READING_CONTENT: ReadingContent[] = [
     xpReward: 35,
     premiumOnly: true,
   },
+  // Social
+  {
+    id: "11",
+    pillar: "social",
+    title: "The Science of Social Connection",
+    description: "Harvard research on how relationships impact health, longevity, and happiness.",
+    source: "Harvard Study of Adult Development",
+    sourceUrl: "https://www.adultdevelopmentstudy.org/",
+    readingTime: 10,
+    difficulty: "beginner",
+    xpReward: 20,
+    premiumOnly: false,
+  },
+  {
+    id: "12",
+    pillar: "social",
+    title: "Building Meaningful Relationships",
+    description: "APA's guide to developing and maintaining healthy social connections.",
+    source: "APA",
+    sourceUrl: "https://www.apa.org/topics/relationships",
+    readingTime: 12,
+    difficulty: "intermediate",
+    xpReward: 25,
+    premiumOnly: false,
+  },
+  // Spiritual
+  {
+    id: "13",
+    pillar: "spiritual",
+    title: "Finding Purpose and Meaning in Life",
+    description: "Research-backed approaches to discovering your life's purpose and values.",
+    source: "Greater Good Science Center",
+    sourceUrl: "https://greatergood.berkeley.edu/topic/purpose",
+    readingTime: 15,
+    difficulty: "intermediate",
+    xpReward: 30,
+    premiumOnly: false,
+  },
+  {
+    id: "14",
+    pillar: "spiritual",
+    title: "The Benefits of Mindfulness and Meditation",
+    description: "NIH overview of how contemplative practices improve well-being.",
+    source: "NIH NCCIH",
+    sourceUrl: "https://www.nccih.nih.gov/health/meditation-and-mindfulness-what-you-need-to-know",
+    readingTime: 10,
+    difficulty: "beginner",
+    xpReward: 20,
+    premiumOnly: false,
+  },
+  // Intellectual
+  {
+    id: "15",
+    pillar: "intellectual",
+    title: "The Science of Learning: How to Learn Anything Faster",
+    description: "Evidence-based strategies for effective learning and skill acquisition.",
+    source: "Coursera - Learning How to Learn",
+    sourceUrl: "https://www.coursera.org/learn/learning-how-to-learn",
+    readingTime: 20,
+    difficulty: "intermediate",
+    xpReward: 35,
+    premiumOnly: false,
+  },
+  {
+    id: "16",
+    pillar: "intellectual",
+    title: "Critical Thinking: A Beginner's Guide",
+    description: "Stanford Encyclopedia's introduction to rational thought and decision making.",
+    source: "Stanford Encyclopedia of Philosophy",
+    sourceUrl: "https://plato.stanford.edu/entries/critical-thinking/",
+    readingTime: 15,
+    difficulty: "intermediate",
+    xpReward: 30,
+    premiumOnly: true,
+  },
+  // Occupational
+  {
+    id: "17",
+    pillar: "occupational",
+    title: "Work-Life Balance: Strategies for Success",
+    description: "Harvard Business Review's guide to maintaining balance in your career.",
+    source: "Harvard Business Review",
+    sourceUrl: "https://hbr.org/topic/subject/work-life-balance",
+    readingTime: 12,
+    difficulty: "intermediate",
+    xpReward: 25,
+    premiumOnly: false,
+  },
+  {
+    id: "18",
+    pillar: "occupational",
+    title: "Finding Career Fulfillment",
+    description: "Research on aligning your work with your values and strengths.",
+    source: "Gallup",
+    sourceUrl: "https://www.gallup.com/cliftonstrengths/",
+    readingTime: 15,
+    difficulty: "intermediate",
+    xpReward: 30,
+    premiumOnly: true,
+  },
+  // Environmental
+  {
+    id: "19",
+    pillar: "environmental",
+    title: "The Health Benefits of Nature",
+    description: "EPA research on how your environment affects physical and mental health.",
+    source: "EPA",
+    sourceUrl: "https://www.epa.gov/report-environment/health-and-environment",
+    readingTime: 10,
+    difficulty: "beginner",
+    xpReward: 20,
+    premiumOnly: false,
+  },
+  {
+    id: "20",
+    pillar: "environmental",
+    title: "Creating a Healthy Home Environment",
+    description: "CDC guidelines for maintaining a healthy living space.",
+    source: "CDC",
+    sourceUrl: "https://www.cdc.gov/nceh/publications/books/housing/housing.htm",
+    readingTime: 12,
+    difficulty: "beginner",
+    xpReward: 25,
+    premiumOnly: false,
+  },
 ];
 
 export default function LibraryPage() {
   const { profile, updateProfile } = useUserStore();
-  const [activeFilter, setActiveFilter] = useState<"all" | "physical" | "mental" | "fiscal">("all");
+  const [activeFilter, setActiveFilter] = useState<"all" | WellnessPillar>("all");
   const [completedArticles, setCompletedArticles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -221,16 +351,26 @@ export default function LibraryPage() {
     }
   };
 
-  const pillarIcons = {
+  const pillarIcons: Record<WellnessPillar, any> = {
     physical: Target,
     mental: Brain,
     fiscal: Wallet,
+    social: Users,
+    spiritual: Sparkles,
+    intellectual: Lightbulb,
+    occupational: Briefcase,
+    environmental: Leaf,
   };
 
-  const pillarColors = {
+  const pillarColors: Record<WellnessPillar, string> = {
     physical: "from-[#667eea] to-[#764ba2]",
     mental: "from-[#f093fb] to-[#f5576c]",
     fiscal: "from-[#4facfe] to-[#00f2fe]",
+    social: "from-[#f97316] to-[#fb923c]",
+    spiritual: "from-[#8b5cf6] to-[#a78bfa]",
+    intellectual: "from-[#eab308] to-[#fbbf24]",
+    occupational: "from-[#22c55e] to-[#4ade80]",
+    environmental: "from-[#14b8a6] to-[#2dd4bf]",
   };
 
   return (
@@ -280,19 +420,19 @@ export default function LibraryPage() {
       {/* Filters */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2">
         <Filter className="w-4 h-4 text-white/40 flex-shrink-0" />
-        {(["all", "physical", "mental", "fiscal"] as const).map((filter) => (
+        {(["all", "physical", "mental", "fiscal", "social", "spiritual", "intellectual", "occupational", "environmental"] as const).map((filter) => (
           <button
             key={filter}
             onClick={() => setActiveFilter(filter)}
             className={`
-              px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap
+              px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap
               ${activeFilter === filter
                 ? "bg-purple-500/30 text-white"
                 : "bg-white/5 text-white/60 hover:bg-white/10"
               }
             `}
           >
-            {filter === "all" ? "All Topics" : filter.charAt(0).toUpperCase() + filter.slice(1)}
+            {filter === "all" ? "All" : filter.charAt(0).toUpperCase() + filter.slice(1)}
           </button>
         ))}
       </div>

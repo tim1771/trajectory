@@ -1,5 +1,59 @@
 export * from "./database";
 
+// All 8 wellness dimensions
+export type WellnessPillar = 
+  | "physical" 
+  | "mental" 
+  | "fiscal" 
+  | "social" 
+  | "spiritual" 
+  | "intellectual" 
+  | "occupational" 
+  | "environmental";
+
+export const PILLAR_INFO: Record<WellnessPillar, { name: string; description: string; icon: string }> = {
+  physical: {
+    name: "Physical",
+    description: "Optimize your body through exercise, nutrition, and sleep",
+    icon: "Target",
+  },
+  mental: {
+    name: "Mental",
+    description: "Cultivate emotional resilience and psychological well-being",
+    icon: "Brain",
+  },
+  fiscal: {
+    name: "Fiscal",
+    description: "Build financial security and smart money habits",
+    icon: "Wallet",
+  },
+  social: {
+    name: "Social",
+    description: "Nurture meaningful relationships and community connections",
+    icon: "Users",
+  },
+  spiritual: {
+    name: "Spiritual",
+    description: "Discover purpose and connect with your core values",
+    icon: "Sparkles",
+  },
+  intellectual: {
+    name: "Intellectual",
+    description: "Expand knowledge and embrace lifelong learning",
+    icon: "Lightbulb",
+  },
+  occupational: {
+    name: "Occupational",
+    description: "Find fulfillment and growth in your work life",
+    icon: "Briefcase",
+  },
+  environmental: {
+    name: "Environmental",
+    description: "Create harmony with your surroundings and nature",
+    icon: "Leaf",
+  },
+};
+
 export interface User {
   id: string;
   email: string;
@@ -37,6 +91,26 @@ export interface OnboardingData {
   budgetingExperience: "none" | "some" | "experienced";
   savingsGoal: number;
   
+  // Social
+  socialGoals: string[];
+  relationshipFocus: string[];
+  
+  // Spiritual
+  spiritualPractices: string[];
+  valuesFocus: string[];
+  
+  // Intellectual
+  learningGoals: string[];
+  intellectualInterests: string[];
+  
+  // Occupational
+  careerGoals: string[];
+  workLifeBalance: number;
+  
+  // Environmental
+  environmentalGoals: string[];
+  sustainabilityLevel: "beginner" | "intermediate" | "advanced";
+  
   // General
   availableTime: number; // minutes per day
   motivation: string;
@@ -46,7 +120,7 @@ export interface OnboardingData {
 export interface Habit {
   id: string;
   userId: string;
-  pillar: "physical" | "mental" | "fiscal";
+  pillar: WellnessPillar;
   name: string;
   description: string | null;
   frequency: "daily" | "weekly" | "custom";
@@ -66,7 +140,7 @@ export interface HabitCompletion {
 export interface Goal {
   id: string;
   userId: string;
-  pillar: "physical" | "mental" | "fiscal";
+  pillar: WellnessPillar;
   title: string;
   description: string | null;
   type: "habit" | "target" | "milestone" | "average";
@@ -77,7 +151,7 @@ export interface Goal {
 
 export interface ReadingContent {
   id: string;
-  pillar: "physical" | "mental" | "fiscal";
+  pillar: WellnessPillar;
   title: string;
   description: string;
   source: string;
@@ -96,7 +170,7 @@ export interface Achievement {
   description: string;
   icon: string;
   xpReward: number;
-  pillar: "physical" | "mental" | "fiscal" | null;
+  pillar: WellnessPillar | null;
   unlocked?: boolean;
   unlockedAt?: string;
 }

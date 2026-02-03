@@ -2,7 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Target, Brain, Wallet, TrendingUp } from "lucide-react";
+import { 
+  ArrowRight, 
+  Sparkles, 
+  Target, 
+  Brain, 
+  Wallet, 
+  TrendingUp,
+  Users,
+  Lightbulb,
+  Briefcase,
+  Leaf 
+} from "lucide-react";
 import Link from "next/link";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
@@ -46,11 +57,9 @@ export default function HomePage() {
           </h1>
           
           <p className="text-xl md:text-2xl text-white/70 mb-12 max-w-2xl mx-auto leading-relaxed">
-            The holistic wellness platform that transforms your 
-            <span className="text-white font-semibold"> physical</span>, 
-            <span className="text-white font-semibold"> mental</span>, and 
-            <span className="text-white font-semibold"> fiscal </span> 
-            health through AI-powered personalization.
+            The holistic wellness platform that transforms all 
+            <span className="text-white font-semibold"> 8 dimensions </span> 
+            of your well-being through AI-powered personalization.
           </p>
 
           {/* CTA Buttons */}
@@ -69,33 +78,68 @@ export default function HomePage() {
           </div>
         </motion.div>
 
-        {/* Pillar Cards */}
+        {/* Pillar Cards - 8 Dimensions of Wellness */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto px-6 w-full"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto px-6 w-full"
         >
           <PillarCard
-            icon={<Target className="w-8 h-8" />}
+            icon={<Target className="w-6 h-6" />}
             title="Physical"
-            description="Optimize your body with personalized fitness, nutrition, and sleep tracking"
+            description="Optimize fitness, nutrition, and sleep"
             gradient="from-[#667eea] to-[#764ba2]"
             delay={0.1}
           />
           <PillarCard
-            icon={<Brain className="w-8 h-8" />}
+            icon={<Brain className="w-6 h-6" />}
             title="Mental"
-            description="Build resilience through meditation, journaling, and mindfulness practices"
+            description="Build emotional resilience and mindfulness"
             gradient="from-[#f093fb] to-[#f5576c]"
+            delay={0.15}
+          />
+          <PillarCard
+            icon={<Wallet className="w-6 h-6" />}
+            title="Fiscal"
+            description="Achieve financial security and smart habits"
+            gradient="from-[#4facfe] to-[#00f2fe]"
             delay={0.2}
           />
           <PillarCard
-            icon={<Wallet className="w-8 h-8" />}
-            title="Fiscal"
-            description="Achieve financial wellness with budgeting, savings goals, and smart habits"
-            gradient="from-[#4facfe] to-[#00f2fe]"
+            icon={<Users className="w-6 h-6" />}
+            title="Social"
+            description="Nurture relationships and community"
+            gradient="from-[#f97316] to-[#fb923c]"
+            delay={0.25}
+          />
+          <PillarCard
+            icon={<Sparkles className="w-6 h-6" />}
+            title="Spiritual"
+            description="Discover purpose and inner peace"
+            gradient="from-[#8b5cf6] to-[#a78bfa]"
             delay={0.3}
+          />
+          <PillarCard
+            icon={<Lightbulb className="w-6 h-6" />}
+            title="Intellectual"
+            description="Expand knowledge through lifelong learning"
+            gradient="from-[#eab308] to-[#fbbf24]"
+            delay={0.35}
+          />
+          <PillarCard
+            icon={<Briefcase className="w-6 h-6" />}
+            title="Occupational"
+            description="Find career fulfillment and balance"
+            gradient="from-[#22c55e] to-[#4ade80]"
+            delay={0.4}
+          />
+          <PillarCard
+            icon={<Leaf className="w-6 h-6" />}
+            title="Environmental"
+            description="Create harmony with your surroundings"
+            gradient="from-[#14b8a6] to-[#2dd4bf]"
+            delay={0.45}
           />
         </motion.div>
       </section>
