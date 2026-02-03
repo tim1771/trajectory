@@ -53,7 +53,12 @@ export default function OnboardingPage() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
 
-      if (!user) throw new Error("Not authenticated");
+      if (!user) {
+        console.error("No user found");
+        throw new Error("Not authenticated");
+      }
+
+      console.log("Saving onboarding data for user:", user.id);
 
       // Create or update user profile
       const { error } = await supabase.from("user_profiles").upsert({
@@ -67,11 +72,17 @@ export default function OnboardingPage() {
         tier: "free",
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
 
+      console.log("Onboarding saved successfully, redirecting to dashboard...");
       router.push("/dashboard");
+      router.refresh();
     } catch (err) {
       console.error("Failed to save onboarding:", err);
+      alert(`Error: ${err instanceof Error ? err.message : "Failed to complete onboarding"}`);
     } finally {
       setLoading(false);
     }
