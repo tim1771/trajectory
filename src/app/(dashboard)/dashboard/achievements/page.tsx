@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { useUserStore } from "@/stores/userStore";
-import type { Achievement } from "@/types";
+import type { Achievement, WellnessPillar } from "@/types";
 
 // Achievement definitions
 const ACHIEVEMENTS: Achievement[] = [
@@ -245,10 +245,15 @@ export default function AchievementsPage() {
     .filter((a) => a.unlocked)
     .reduce((sum, a) => sum + a.xpReward, 0);
 
-  const pillarColors = {
+  const pillarColors: Record<WellnessPillar | "null", string> = {
     physical: "from-[#667eea] to-[#764ba2]",
     mental: "from-[#f093fb] to-[#f5576c]",
     fiscal: "from-[#4facfe] to-[#00f2fe]",
+    social: "from-[#f97316] to-[#fb923c]",
+    spiritual: "from-[#8b5cf6] to-[#a78bfa]",
+    intellectual: "from-[#eab308] to-[#fbbf24]",
+    occupational: "from-[#22c55e] to-[#4ade80]",
+    environmental: "from-[#14b8a6] to-[#2dd4bf]",
     null: "from-purple-500 to-pink-500",
   };
 
