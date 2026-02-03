@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   BookOpen,
@@ -16,6 +16,7 @@ import {
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { useUserStore } from "@/stores/userStore";
+import { createClient } from "@/lib/supabase/client";
 import type { ReadingContent } from "@/types";
 
 // Curated reading content from reputable sources
@@ -146,9 +147,30 @@ const READING_CONTENT: ReadingContent[] = [
 ];
 
 export default function LibraryPage() {
-  const { profile } = useUserStore();
+  const { profile, updateProfile } = useUserStore();
   const [activeFilter, setActiveFilter] = useState<"all" | "physical" | "mental" | "fiscal">("all");
   const [completedArticles, setCompletedArticles] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Load completed articles from database on mount
+  useEffect(() => {
+    const loadProgress = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("reading_progress")
+        .select("content_id")
+        .eq("user_id", user.id)
+        .eq("completed", true);
+
+      if (data) {
+        setCompletedArticles(data.map((r: any) => r.content_id));
+      }
+    };
+    loadProgress();
+  }, []);
 
   const filteredContent = READING_CONTENT.filter(
     (content) => activeFilter === "all" || content.pillar === activeFilter
@@ -161,13 +183,41 @@ export default function LibraryPage() {
 
   const canAccessFree = profile?.tier === "premium" || freeArticlesRead < 5;
 
-  const handleMarkComplete = (id: string) => {
-    if (!completedArticles.includes(id)) {
-      setCompletedArticles([...completedArticles, id]);
+  const handleMarkComplete = async (id: string) => {
+    if (completedArticles.includes(id) || loading) return;
+    
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
       const article = READING_CONTENT.find((c) => c.id === id);
-      if (article) {
-        useUserStore.getState().addXP(article.xpReward);
-      }
+      if (!article) return;
+
+      // Save reading progress to database
+      await supabase.from("reading_progress").upsert({
+        user_id: user.id,
+        content_id: id,
+        completed: true,
+        completed_at: new Date().toISOString(),
+      });
+
+      // Update XP in database
+      const newXP = (profile?.xpPoints || 0) + article.xpReward;
+      await supabase
+        .from("user_profiles")
+        .update({ xp_points: newXP })
+        .eq("user_id", user.id);
+
+      // Update local state
+      setCompletedArticles([...completedArticles, id]);
+      useUserStore.getState().addXP(article.xpReward);
+      
+    } catch (err) {
+      console.error("Failed to mark article complete:", err);
+    } finally {
+      setLoading(false);
     }
   };
 

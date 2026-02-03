@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateCoachResponse } from "@/lib/groq/client";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
+const FREE_TIER_DAILY_LIMIT = 10;
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
@@ -11,6 +13,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { messages } = await request.json();
+
     // Check rate limiting for free users
     const { data: profile } = await supabase
       .from("user_profiles")
@@ -18,29 +22,34 @@ export async function POST(request: NextRequest) {
       .eq("user_id", user.id)
       .single();
 
-    if (profile?.tier === "free") {
-      // Check message count for today
+    // Get existing conversation
+    const { data: existingConversation } = await supabase
+      .from("ai_conversations")
+      .select("id, messages")
+      .eq("user_id", user.id)
+      .single();
+
+    if (profile?.tier === "free" || !profile?.tier) {
+      // Count user messages from today
       const today = new Date().toISOString().split("T")[0];
-      const { data: conversation } = await supabase
-        .from("ai_conversations")
-        .select("messages")
-        .eq("user_id", user.id)
-        .gte("updated_at", today)
-        .single();
-
-      const todayMessages = (conversation?.messages as any[])?.filter(
+      const existingMessages = (existingConversation?.messages as any[]) || [];
+      const todayUserMessages = existingMessages.filter(
         (m: any) => m.role === "user" && m.timestamp?.startsWith(today)
-      ) || [];
+      );
 
-      if (todayMessages.length >= 10) {
+      // Also count the new message being sent
+      const totalTodayMessages = todayUserMessages.length + 1;
+
+      if (totalTodayMessages > FREE_TIER_DAILY_LIMIT) {
         return NextResponse.json(
-          { error: "Daily message limit reached. Upgrade to Premium for unlimited messages." },
+          { 
+            error: `Daily message limit (${FREE_TIER_DAILY_LIMIT}) reached. Upgrade to Premium for unlimited messages.`,
+            remainingMessages: 0 
+          },
           { status: 429 }
         );
       }
     }
-
-    const { messages } = await request.json();
 
     // Get user's recent habits for context
     const { data: habits } = await supabase
@@ -58,20 +67,37 @@ export async function POST(request: NextRequest) {
       challenges: onboardingData?.challenges,
     });
 
-    // Save conversation
-    const newMessage = {
+    // Add timestamps to user messages if missing
+    const messagesWithTimestamps = messages.map((m: any) => ({
+      ...m,
+      timestamp: m.timestamp || new Date().toISOString(),
+    }));
+
+    // Create the assistant response with timestamp
+    const assistantMessage = {
       role: "assistant",
       content: response,
       timestamp: new Date().toISOString(),
     };
 
-    const allMessages = [...messages, newMessage];
+    const allMessages = [...messagesWithTimestamps, assistantMessage];
 
-    await supabase.from("ai_conversations").upsert({
-      user_id: user.id,
-      messages: allMessages,
-      updated_at: new Date().toISOString(),
-    });
+    // Save conversation (upsert based on user_id)
+    if (existingConversation?.id) {
+      await supabase
+        .from("ai_conversations")
+        .update({
+          messages: allMessages,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existingConversation.id);
+    } else {
+      await supabase.from("ai_conversations").insert({
+        user_id: user.id,
+        messages: allMessages,
+        updated_at: new Date().toISOString(),
+      });
+    }
 
     return NextResponse.json({ message: response });
   } catch (error: any) {
