@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useUserStore } from "@/stores/userStore";
+import { SoundscapePlayer } from "@/components/SoundscapePlayer";
 
 // 8 Dimensions of Wellness navigation
 const pillarItems = [
@@ -266,6 +267,9 @@ export default function DashboardLayout({
       <main className="flex-1 min-h-screen lg:ml-0">
         <div className="p-6 lg:p-8">{children}</div>
       </main>
+
+      {/* Floating soundscape player */}
+      <SoundscapePlayer />
     </div>
   );
 }
