@@ -22,6 +22,7 @@ import {
   X,
   Sparkles,
   LogOut,
+  Zap,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useUserStore } from "@/stores/userStore";
@@ -42,6 +43,8 @@ const pillarItems = [
 const toolItems = [
   { href: "/dashboard/coach", icon: MessageSquare, label: "AI Coach" },
   { href: "/dashboard/library", icon: BookOpen, label: "Library" },
+  { href: "/dashboard/community", icon: Users, label: "Community" },
+  { href: "/dashboard/challenges", icon: Zap, label: "Challenges" },
   { href: "/dashboard/achievements", icon: Trophy, label: "Achievements" },
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];

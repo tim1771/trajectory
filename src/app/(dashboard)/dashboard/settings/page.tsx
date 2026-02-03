@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Settings,
@@ -14,6 +14,9 @@ import {
   ChevronRight,
   Crown,
   Sparkles,
+  Eye,
+  EyeOff,
+  UserPlus,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
@@ -32,6 +35,70 @@ export default function SettingsPage() {
     achievements: true,
     streakWarning: true,
   });
+  const [privacy, setPrivacy] = useState({
+    profileVisibility: "friends" as "public" | "friends" | "private",
+    showStreak: true,
+    showLevel: true,
+    showAchievements: true,
+    allowFriendRequests: true,
+  });
+  const [privacyLoading, setPrivacyLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPrivacySettings();
+  }, []);
+
+  const fetchPrivacySettings = async () => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("user_privacy")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
+
+    if (data) {
+      setPrivacy({
+        profileVisibility: data.profile_visibility as "public" | "friends" | "private",
+        showStreak: data.show_streak,
+        showLevel: data.show_level,
+        showAchievements: data.show_achievements,
+        allowFriendRequests: data.allow_friend_requests,
+      });
+    }
+
+    setPrivacyLoading(false);
+  };
+
+  const handleSavePrivacy = async () => {
+    setSaving(true);
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase
+        .from("user_privacy")
+        .upsert({
+          user_id: user.id,
+          profile_visibility: privacy.profileVisibility,
+          show_streak: privacy.showStreak,
+          show_level: privacy.showLevel,
+          show_achievements: privacy.showAchievements,
+          allow_friend_requests: privacy.allowFriendRequests,
+          updated_at: new Date().toISOString(),
+        });
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error("Failed to save privacy settings:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleSaveProfile = async () => {
     setSaving(true);
@@ -263,7 +330,144 @@ export default function SettingsPage() {
       <GlassCard>
         <div className="flex items-center gap-3 mb-6">
           <Shield className="w-5 h-5 text-white/60" />
-          <h2 className="text-lg font-semibold text-white">Privacy & Data</h2>
+          <h2 className="text-lg font-semibold text-white">Privacy Settings</h2>
+        </div>
+
+        {privacyLoading ? (
+          <div className="text-center py-4 text-white/60">Loading...</div>
+        ) : (
+          <div className="space-y-4">
+            {/* Profile Visibility */}
+            <div className="p-4 rounded-xl bg-white/5">
+              <div className="flex items-center gap-2 mb-3">
+                <Eye className="w-4 h-4 text-white/60" />
+                <div className="text-white font-medium">Profile Visibility</div>
+              </div>
+              <div className="text-white/60 text-sm mb-3">
+                Who can see your profile and progress?
+              </div>
+              <div className="flex gap-2">
+                {(["public", "friends", "private"] as const).map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => setPrivacy({ ...privacy, profileVisibility: option })}
+                    className={`
+                      px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                      ${privacy.profileVisibility === option
+                        ? "bg-purple-500 text-white"
+                        : "bg-white/10 text-white/60 hover:bg-white/20"
+                      }
+                    `}
+                  >
+                    {option.charAt(0).toUpperCase() + option.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Profile Elements */}
+            <div className="p-4 rounded-xl bg-white/5">
+              <div className="text-white font-medium mb-3">Show on Profile</div>
+              <div className="space-y-3">
+                {[
+                  { key: "showLevel", label: "Level & XP", icon: Crown },
+                  { key: "showStreak", label: "Streak count", icon: Sparkles },
+                  { key: "showAchievements", label: "Achievements", icon: Crown },
+                ].map((item) => (
+                  <div key={item.key} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-white/70">
+                      <item.icon className="w-4 h-4" />
+                      {item.label}
+                    </div>
+                    <button
+                      onClick={() =>
+                        setPrivacy({
+                          ...privacy,
+                          [item.key]: !privacy[item.key as keyof typeof privacy],
+                        })
+                      }
+                      className={`
+                        w-12 h-6 rounded-full transition-colors relative
+                        ${privacy[item.key as keyof typeof privacy]
+                          ? "bg-purple-500"
+                          : "bg-white/20"
+                        }
+                      `}
+                    >
+                      <motion.div
+                        className="absolute top-1 w-4 h-4 rounded-full bg-white"
+                        animate={{
+                          left: privacy[item.key as keyof typeof privacy]
+                            ? "calc(100% - 20px)"
+                            : "4px",
+                        }}
+                        transition={{ duration: 0.2 }}
+                      />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Friend Requests */}
+            <div className="p-4 rounded-xl bg-white/5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <UserPlus className="w-4 h-4 text-white/60" />
+                  <div>
+                    <div className="text-white font-medium">Allow Friend Requests</div>
+                    <div className="text-white/60 text-sm">
+                      Let others send you connection requests
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() =>
+                    setPrivacy({
+                      ...privacy,
+                      allowFriendRequests: !privacy.allowFriendRequests,
+                    })
+                  }
+                  className={`
+                    w-12 h-6 rounded-full transition-colors relative
+                    ${privacy.allowFriendRequests ? "bg-purple-500" : "bg-white/20"}
+                  `}
+                >
+                  <motion.div
+                    className="absolute top-1 w-4 h-4 rounded-full bg-white"
+                    animate={{
+                      left: privacy.allowFriendRequests ? "calc(100% - 20px)" : "4px",
+                    }}
+                    transition={{ duration: 0.2 }}
+                  />
+                </button>
+              </div>
+            </div>
+
+            <GlassButton
+              variant="primary"
+              onClick={handleSavePrivacy}
+              loading={saving}
+              className="w-full"
+            >
+              {saved ? (
+                <>
+                  <Check className="w-4 h-4 mr-1" />
+                  Privacy Settings Saved!
+                </>
+              ) : (
+                "Save Privacy Settings"
+              )}
+            </GlassButton>
+          </div>
+        )}
+      </GlassCard>
+
+      {/* Data Management Section */}
+      <GlassCard>
+        <div className="flex items-center gap-3 mb-6">
+          <Download className="w-5 h-5 text-white/60" />
+          <h2 className="text-lg font-semibold text-white">Data Management</h2>
         </div>
 
         <div className="space-y-4">
