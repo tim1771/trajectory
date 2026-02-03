@@ -267,8 +267,8 @@ export default function DashboardLayout({
       )}
 
       {/* Main content */}
-      <main className="flex-1 min-h-screen lg:ml-0">
-        <div className="p-6 lg:p-8">{children}</div>
+      <main className="flex-1 min-h-screen lg:ml-0 overflow-x-hidden">
+        <div className="p-6 lg:p-8 w-full max-w-full">{children}</div>
       </main>
 
       {/* Floating soundscape player */}

@@ -380,7 +380,7 @@ export default function LibraryPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 w-full max-w-full overflow-x-hidden">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
@@ -444,7 +444,7 @@ export default function LibraryPage() {
       </div>
 
       {/* Content Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
         {filteredContent.map((content, index) => {
           const Icon = pillarIcons[content.pillar];
           const isCompleted = completedArticles.includes(content.id);
@@ -457,19 +457,20 @@ export default function LibraryPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
+              className="w-full min-w-0"
             >
               <GlassCard 
                 className={`h-full ${isLocked || isFreeButLimited ? "opacity-60" : ""}`}
                 hover={!isLocked && !isFreeButLimited}
               >
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-4 w-full min-w-0">
                   <div className={`p-3 rounded-xl bg-gradient-to-br ${pillarColors[content.pillar]} flex-shrink-0`}>
                     <Icon className="w-5 h-5 text-white" />
                   </div>
 
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 overflow-hidden">
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="text-white font-semibold line-clamp-2">
+                      <h3 className="text-white font-semibold line-clamp-2 break-words">
                         {content.title}
                       </h3>
                       {isCompleted && (
@@ -480,21 +481,21 @@ export default function LibraryPage() {
                       )}
                     </div>
 
-                    <p className="text-white/60 text-sm mb-3 line-clamp-2">
+                    <p className="text-white/60 text-sm mb-3 line-clamp-2 break-words">
                       {content.description}
                     </p>
 
-                    <div className="flex items-center gap-4 text-sm text-white/40 mb-4">
-                      <span>{content.source}</span>
-                      <span className="flex items-center gap-1">
+                    <div className="flex flex-wrap items-center gap-2 md:gap-4 text-sm text-white/40 mb-4">
+                      <span className="truncate">{content.source}</span>
+                      <span className="flex items-center gap-1 flex-shrink-0">
                         <Clock className="w-3 h-3" />
                         {content.readingTime} min
                       </span>
-                      <span className="capitalize">{content.difficulty}</span>
+                      <span className="capitalize flex-shrink-0">{content.difficulty}</span>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-purple-400 text-sm">+{content.xpReward} XP</span>
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <span className="text-purple-400 text-sm flex-shrink-0">+{content.xpReward} XP</span>
                       
                       {isLocked ? (
                         <GlassButton variant="secondary" size="sm" disabled>
