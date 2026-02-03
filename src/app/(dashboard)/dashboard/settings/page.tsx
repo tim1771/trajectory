@@ -17,18 +17,23 @@ import {
   Eye,
   EyeOff,
   UserPlus,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { GlassInput } from "@/components/ui/GlassInput";
 import { useUserStore } from "@/stores/userStore";
 import { createClient } from "@/lib/supabase/client";
+import { useSoundEffects } from "@/lib/sounds";
 
 export default function SettingsPage() {
   const { profile, updateProfile } = useUserStore();
+  const sound = useSoundEffects();
   const [displayName, setDisplayName] = useState(profile?.displayName || "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [notifications, setNotifications] = useState({
     dailyReminder: true,
     weeklyReport: true,
@@ -46,6 +51,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     fetchPrivacySettings();
+    setSoundEnabled(sound.isEnabled());
   }, []);
 
   const fetchPrivacySettings = async () => {
@@ -280,10 +286,47 @@ export default function SettingsPage() {
       <GlassCard>
         <div className="flex items-center gap-3 mb-6">
           <Bell className="w-5 h-5 text-white/60" />
-          <h2 className="text-lg font-semibold text-white">Notifications</h2>
+          <h2 className="text-lg font-semibold text-white">Preferences</h2>
         </div>
 
         <div className="space-y-4">
+          {/* Sound Effects Toggle */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-white/5">
+            <div className="flex items-center gap-3">
+              {soundEnabled ? (
+                <Volume2 className="w-5 h-5 text-white/60" />
+              ) : (
+                <VolumeX className="w-5 h-5 text-white/60" />
+              )}
+              <div>
+                <div className="text-white font-medium">Sound Effects</div>
+                <div className="text-white/60 text-sm">
+                  Haptic audio feedback for button clicks
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                const newValue = !soundEnabled;
+                setSoundEnabled(newValue);
+                sound.setEnabled(newValue);
+                if (newValue) sound.toggle();
+              }}
+              className={`
+                w-12 h-6 rounded-full transition-colors relative
+                ${soundEnabled ? "bg-purple-500" : "bg-white/20"}
+              `}
+            >
+              <motion.div
+                className="absolute top-1 w-4 h-4 rounded-full bg-white"
+                animate={{
+                  left: soundEnabled ? "calc(100% - 20px)" : "4px",
+                }}
+                transition={{ duration: 0.2 }}
+              />
+            </button>
+          </div>
+
           {[
             { key: "dailyReminder", label: "Daily habit reminder", description: "Get reminded to complete your habits" },
             { key: "weeklyReport", label: "Weekly progress report", description: "Summary of your weekly achievements" },

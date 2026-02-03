@@ -2,12 +2,14 @@
 
 import { ReactNode, forwardRef } from "react";
 import { cn } from "@/lib/utils";
+import { useSoundEffects } from "@/lib/sounds";
 
 interface GlassButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
   variant?: "primary" | "secondary" | "ghost" | "danger";
   size?: "sm" | "md" | "lg";
   loading?: boolean;
+  soundEffect?: "click" | "success" | "toggle" | "navigate" | "none";
 }
 
 export const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
@@ -17,12 +19,23 @@ export const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
       variant = "primary",
       size = "md",
       loading = false,
+      soundEffect = "click",
       className,
       disabled,
+      onClick,
       ...props
     },
     ref
   ) {
+    const sound = useSoundEffects();
+
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (!disabled && !loading && soundEffect !== "none") {
+        sound[soundEffect]();
+      }
+      onClick?.(e);
+    };
+
     const variants = {
       primary:
         "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-purple-500/25",
@@ -51,6 +64,7 @@ export const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
           className
         )}
         disabled={disabled || loading}
+        onClick={handleClick}
         {...props}
       >
         {loading ? (
