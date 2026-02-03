@@ -418,23 +418,25 @@ export default function LibraryPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-2 px-2">
         <Filter className="w-4 h-4 text-white/40 flex-shrink-0" />
-        {(["all", "physical", "mental", "fiscal", "social", "spiritual", "intellectual", "occupational", "environmental"] as const).map((filter) => (
-          <button
-            key={filter}
-            onClick={() => setActiveFilter(filter)}
-            className={`
-              px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap
-              ${activeFilter === filter
-                ? "bg-purple-500/30 text-white"
-                : "bg-white/5 text-white/60 hover:bg-white/10"
-              }
-            `}
-          >
-            {filter === "all" ? "All" : filter.charAt(0).toUpperCase() + filter.slice(1)}
-          </button>
-        ))}
+        <div className="flex gap-2">
+          {(["all", "physical", "mental", "fiscal", "social", "spiritual", "intellectual", "occupational", "environmental"] as const).map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setActiveFilter(filter)}
+              className={`
+                px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0
+                ${activeFilter === filter
+                  ? "bg-purple-500/30 text-white"
+                  : "bg-white/5 text-white/60 hover:bg-white/10"
+                }
+              `}
+            >
+              {filter === "all" ? "All" : filter.charAt(0).toUpperCase() + filter.slice(1)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Content Grid */}

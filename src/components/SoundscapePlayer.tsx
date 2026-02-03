@@ -76,17 +76,34 @@ export function SoundscapePlayer() {
     }
   }, [volume]);
 
-  const handlePlay = (soundId: SoundscapeId) => {
+  const handlePlay = async (soundId: SoundscapeId) => {
     if (isFree && playTime >= freeTimeLimit) {
       alert("You've reached the free tier limit (10 min/day). Upgrade to Premium for unlimited access!");
       return;
     }
 
-    setActiveSound(soundId);
-    setIsPlaying(true);
-    
-    if (audioRef.current) {
-      audioRef.current.play().catch((err) => console.error("Audio play failed:", err));
+    // If switching to a new sound, update it first
+    if (activeSound !== soundId) {
+      setActiveSound(soundId);
+      // Wait for useEffect to create new audio
+      setTimeout(() => {
+        setIsPlaying(true);
+        if (audioRef.current) {
+          audioRef.current.play().catch((err) => {
+            console.error("Audio play failed:", err);
+            alert("Failed to play audio. Please check your browser permissions.");
+          });
+        }
+      }, 100);
+    } else {
+      // Resume current sound
+      setIsPlaying(true);
+      if (audioRef.current) {
+        audioRef.current.play().catch((err) => {
+          console.error("Audio play failed:", err);
+          alert("Failed to play audio. Please check your browser permissions.");
+        });
+      }
     }
   };
 
