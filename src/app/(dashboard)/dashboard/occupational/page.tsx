@@ -296,10 +296,7 @@ export default function OccupationalPage() {
                   {HABIT_TEMPLATES.map((template) => (
                     <button
                       key={template.name}
-                      onClick={() => {
-                        sound.click();
-                        handleAddHabit(template.name, template.xp);
-                      }}
+                      onClick={() => handleAddHabit(template.name, template.xp)}
                       disabled={loading}
                       className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
                     >
