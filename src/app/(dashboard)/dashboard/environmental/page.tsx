@@ -20,6 +20,7 @@ import { GlassInput } from "@/components/ui/GlassInput";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { useUserStore } from "@/stores/userStore";
 import { createClient } from "@/lib/supabase/client";
+import { useSoundEffects } from "@/lib/sounds";
 import type { Habit } from "@/types";
 
 const HABIT_TEMPLATES = [
@@ -32,6 +33,7 @@ const HABIT_TEMPLATES = [
 
 export default function EnvironmentalPage() {
   const { habits, setHabits, addHabit, removeHabit } = useUserStore();
+  const sound = useSoundEffects();
   const [showAddModal, setShowAddModal] = useState(false);
   const [newHabitName, setNewHabitName] = useState("");
   const [loading, setLoading] = useState(false);
