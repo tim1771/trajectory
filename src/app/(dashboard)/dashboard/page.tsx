@@ -17,11 +17,15 @@ import {
   Plus,
   Sparkles,
   BookOpen,
+  Zap,
+  Trophy,
 } from "lucide-react";
 import Link from "next/link";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { ProgressRing } from "@/components/ui/ProgressRing";
+import { CountUp } from "@/components/ui/AnimatedCounter";
+import { StaggeredList, StaggeredItem, FadeInOnScroll } from "@/components/ui/StaggeredList";
 import { useUserStore } from "@/stores/userStore";
 import { getGreeting, getLevelFromXP } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -96,183 +100,210 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
+    <div className="space-y-8 pb-8">
+      {/* Hero Header */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] }}
+        className="relative"
       >
-        <h1 className="text-3xl font-bold text-white mb-2">
-          {getGreeting()}, {profile?.displayName || "Traveler"}
+        <motion.div
+          className="absolute -top-10 -left-10 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity }}
+        />
+        <p className="text-white/50 text-sm font-medium tracking-wide uppercase mb-2">
+          {getGreeting()}
+        </p>
+        <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
+          <span className="bg-gradient-to-r from-white via-white to-white/60 bg-clip-text text-transparent">
+            {profile?.displayName || "Traveler"}
+          </span>
         </h1>
-        <p className="text-white/60">
-          Here's your progress for today. Keep up the momentum!
+        <p className="text-white/60 text-lg">
+          Level <span className="text-purple-400 font-semibold">{levelInfo.level}</span> • 
+          <span className="text-white/80 ml-2"><CountUp end={profile?.xpPoints || 0} duration={1.5} /> XP</span>
         </p>
       </motion.div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <QuickStat
-          icon={<Flame className="w-5 h-5 text-orange-400" />}
-          label="Current Streak"
-          value={`${profile?.currentStreak || 0} days`}
-          trend={profile?.currentStreak ? "+1" : undefined}
-        />
-        <QuickStat
-          icon={<CheckCircle2 className="w-5 h-5 text-green-400" />}
-          label="Today's Habits"
-          value={`${todayStats.completed}/${todayStats.total}`}
-          progress={(todayStats.completed / Math.max(todayStats.total, 1)) * 100}
-        />
-        <QuickStat
-          icon={<TrendingUp className="w-5 h-5 text-purple-400" />}
-          label="Level Progress"
-          value={`Level ${levelInfo.level}`}
-          progress={levelProgress}
-        />
-        <QuickStat
-          icon={<Sparkles className="w-5 h-5 text-yellow-400" />}
-          label="XP Today"
-          value={`+${todayStats.xpEarned} XP`}
-        />
-      </div>
+      {/* Quick Stats - Animated Cards */}
+      <StaggeredList className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <StaggeredItem>
+          <QuickStat
+            icon={<Flame className="w-5 h-5" />}
+            label="Streak"
+            value={profile?.currentStreak || 0}
+            suffix=" days"
+            color="orange"
+          />
+        </StaggeredItem>
+        <StaggeredItem>
+          <QuickStat
+            icon={<CheckCircle2 className="w-5 h-5" />}
+            label="Today"
+            value={todayStats.completed}
+            suffix={`/${todayStats.total}`}
+            color="green"
+            progress={(todayStats.completed / Math.max(todayStats.total, 1)) * 100}
+          />
+        </StaggeredItem>
+        <StaggeredItem>
+          <QuickStat
+            icon={<Trophy className="w-5 h-5" />}
+            label="Level"
+            value={levelInfo.level}
+            color="purple"
+            progress={levelProgress}
+          />
+        </StaggeredItem>
+        <StaggeredItem>
+          <QuickStat
+            icon={<Zap className="w-5 h-5" />}
+            label="XP Today"
+            value={todayStats.xpEarned}
+            prefix="+"
+            suffix=" XP"
+            color="yellow"
+          />
+        </StaggeredItem>
+      </StaggeredList>
 
       {/* 8 Dimensions of Wellness */}
-      <div>
-        <h2 className="text-xl font-semibold text-white mb-4">8 Dimensions of Wellness</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <PillarCard
-            pillar="physical"
-            icon={<Target className="w-5 h-5" />}
-            title="Physical"
-            progress={getPillarProgress("physical")}
-            habits={habits.filter((h) => h.pillar === "physical").length}
-            href="/dashboard/physical"
-          />
-          <PillarCard
-            pillar="mental"
-            icon={<Brain className="w-5 h-5" />}
-            title="Mental"
-            progress={getPillarProgress("mental")}
-            habits={habits.filter((h) => h.pillar === "mental").length}
-            href="/dashboard/mental"
-          />
-          <PillarCard
-            pillar="fiscal"
-            icon={<Wallet className="w-5 h-5" />}
-            title="Fiscal"
-            progress={getPillarProgress("fiscal")}
-            habits={habits.filter((h) => h.pillar === "fiscal").length}
-            href="/dashboard/fiscal"
-          />
-          <PillarCard
-            pillar="social"
-            icon={<Users className="w-5 h-5" />}
-            title="Social"
-            progress={getPillarProgress("social")}
-            habits={habits.filter((h) => h.pillar === "social").length}
-            href="/dashboard/social"
-          />
-          <PillarCard
-            pillar="spiritual"
-            icon={<SparklesIcon className="w-5 h-5" />}
-            title="Spiritual"
-            progress={getPillarProgress("spiritual")}
-            habits={habits.filter((h) => h.pillar === "spiritual").length}
-            href="/dashboard/spiritual"
-          />
-          <PillarCard
-            pillar="intellectual"
-            icon={<Lightbulb className="w-5 h-5" />}
-            title="Intellectual"
-            progress={getPillarProgress("intellectual")}
-            habits={habits.filter((h) => h.pillar === "intellectual").length}
-            href="/dashboard/intellectual"
-          />
-          <PillarCard
-            pillar="occupational"
-            icon={<Briefcase className="w-5 h-5" />}
-            title="Occupational"
-            progress={getPillarProgress("occupational")}
-            habits={habits.filter((h) => h.pillar === "occupational").length}
-            href="/dashboard/occupational"
-          />
-          <PillarCard
-            pillar="environmental"
-            icon={<Leaf className="w-5 h-5" />}
-            title="Environmental"
-            progress={getPillarProgress("environmental")}
-            habits={habits.filter((h) => h.pillar === "environmental").length}
-            href="/dashboard/environmental"
-          />
+      <FadeInOnScroll>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-white">
+            Your <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Dimensions</span>
+          </h2>
+          <span className="text-white/40 text-sm">8 pillars</span>
         </div>
-      </div>
+      </FadeInOnScroll>
+      <StaggeredList className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4" staggerDelay={0.06}>
+        <StaggeredItem>
+          <PillarCard pillar="physical" icon={<Target className="w-5 h-5" />} title="Physical" progress={getPillarProgress("physical")} habits={habits.filter((h) => h.pillar === "physical").length} href="/dashboard/physical" />
+        </StaggeredItem>
+        <StaggeredItem>
+          <PillarCard pillar="mental" icon={<Brain className="w-5 h-5" />} title="Mental" progress={getPillarProgress("mental")} habits={habits.filter((h) => h.pillar === "mental").length} href="/dashboard/mental" />
+        </StaggeredItem>
+        <StaggeredItem>
+          <PillarCard pillar="fiscal" icon={<Wallet className="w-5 h-5" />} title="Fiscal" progress={getPillarProgress("fiscal")} habits={habits.filter((h) => h.pillar === "fiscal").length} href="/dashboard/fiscal" />
+        </StaggeredItem>
+        <StaggeredItem>
+          <PillarCard pillar="social" icon={<Users className="w-5 h-5" />} title="Social" progress={getPillarProgress("social")} habits={habits.filter((h) => h.pillar === "social").length} href="/dashboard/social" />
+        </StaggeredItem>
+        <StaggeredItem>
+          <PillarCard pillar="spiritual" icon={<SparklesIcon className="w-5 h-5" />} title="Spiritual" progress={getPillarProgress("spiritual")} habits={habits.filter((h) => h.pillar === "spiritual").length} href="/dashboard/spiritual" />
+        </StaggeredItem>
+        <StaggeredItem>
+          <PillarCard pillar="intellectual" icon={<Lightbulb className="w-5 h-5" />} title="Intellectual" progress={getPillarProgress("intellectual")} habits={habits.filter((h) => h.pillar === "intellectual").length} href="/dashboard/intellectual" />
+        </StaggeredItem>
+        <StaggeredItem>
+          <PillarCard pillar="occupational" icon={<Briefcase className="w-5 h-5" />} title="Occupational" progress={getPillarProgress("occupational")} habits={habits.filter((h) => h.pillar === "occupational").length} href="/dashboard/occupational" />
+        </StaggeredItem>
+        <StaggeredItem>
+          <PillarCard pillar="environmental" icon={<Leaf className="w-5 h-5" />} title="Environmental" progress={getPillarProgress("environmental")} habits={habits.filter((h) => h.pillar === "environmental").length} href="/dashboard/environmental" />
+        </StaggeredItem>
+      </StaggeredList>
 
       {/* Today's Habits */}
-      <GlassCard>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-white">Today's Habits</h2>
-          <Link href="/dashboard/physical">
-            <GlassButton variant="ghost" size="sm">
-              <Plus className="w-4 h-4 mr-1" />
-              Add Habit
-            </GlassButton>
-          </Link>
-        </div>
-
-        {habits.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
-              <Target className="w-8 h-8 text-white/40" />
-            </div>
-            <p className="text-white/60 mb-4">No habits yet. Start building your routine!</p>
+      <FadeInOnScroll delay={0.1}>
+        <GlassCard>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-white">Today's <span className="text-purple-400">Habits</span></h2>
             <Link href="/dashboard/physical">
-              <GlassButton variant="primary" size="sm">
+              <GlassButton variant="ghost" size="sm">
                 <Plus className="w-4 h-4 mr-1" />
-                Create First Habit
+                Add
               </GlassButton>
             </Link>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {habits.slice(0, 5).map((habit) => (
-              <HabitItem key={habit.id} habit={habit} />
-            ))}
-            {habits.length > 5 && (
-              <Link href="/dashboard/physical" className="block text-center text-purple-400 hover:text-purple-300 text-sm py-2">
-                View all {habits.length} habits
+
+          {habits.length === 0 ? (
+            <motion.div 
+              className="text-center py-8"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <motion.div 
+                className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center"
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Target className="w-8 h-8 text-white/40" />
+              </motion.div>
+              <p className="text-white/60 mb-4">No habits yet. Start building your routine!</p>
+              <Link href="/dashboard/physical">
+                <GlassButton variant="primary" size="sm">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Create First Habit
+                </GlassButton>
               </Link>
-            )}
-          </div>
-        )}
-      </GlassCard>
+            </motion.div>
+          ) : (
+            <StaggeredList className="space-y-3" staggerDelay={0.05}>
+              {habits.slice(0, 5).map((habit) => (
+                <StaggeredItem key={habit.id}>
+                  <HabitItem habit={habit} />
+                </StaggeredItem>
+              ))}
+              {habits.length > 5 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <Link href="/dashboard/physical" className="block text-center text-purple-400 hover:text-purple-300 text-sm py-2">
+                    View all {habits.length} habits →
+                  </Link>
+                </motion.div>
+              )}
+            </StaggeredList>
+          )}
+        </GlassCard>
+      </FadeInOnScroll>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Link href="/dashboard/coach">
-          <GlassCard hover className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h3 className="text-white font-semibold">Chat with AI Coach</h3>
-              <p className="text-white/60 text-sm">Get personalized guidance</p>
-            </div>
-          </GlassCard>
-        </Link>
-        <Link href="/dashboard/library">
-          <GlassCard hover className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-              <BookOpen className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h3 className="text-white font-semibold">Required Reading</h3>
-              <p className="text-white/60 text-sm">Expand your knowledge</p>
-            </div>
-          </GlassCard>
-        </Link>
-      </div>
+      <FadeInOnScroll delay={0.15}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link href="/dashboard/coach">
+            <motion.div whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
+              <GlassCard className="flex items-center gap-4 group">
+                <motion.div 
+                  className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/25"
+                  whileHover={{ rotate: [0, -10, 10, 0] }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Sparkles className="w-7 h-7 text-white" />
+                </motion.div>
+                <div className="flex-1">
+                  <h3 className="text-white font-bold text-lg group-hover:text-purple-300 transition-colors">AI Coach</h3>
+                  <p className="text-white/50 text-sm">Get personalized guidance</p>
+                </div>
+                <span className="text-white/30 group-hover:text-white/50 transition-colors">→</span>
+              </GlassCard>
+            </motion.div>
+          </Link>
+          <Link href="/dashboard/library">
+            <motion.div whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
+              <GlassCard className="flex items-center gap-4 group">
+                <motion.div 
+                  className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-cyan-500/25"
+                  whileHover={{ rotate: [0, -10, 10, 0] }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <BookOpen className="w-7 h-7 text-white" />
+                </motion.div>
+                <div className="flex-1">
+                  <h3 className="text-white font-bold text-lg group-hover:text-cyan-300 transition-colors">Library</h3>
+                  <p className="text-white/50 text-sm">Expand your knowledge</p>
+                </div>
+                <span className="text-white/30 group-hover:text-white/50 transition-colors">→</span>
+              </GlassCard>
+            </motion.div>
+          </Link>
+        </div>
+      </FadeInOnScroll>
     </div>
   );
 }
@@ -281,41 +312,59 @@ function QuickStat({
   icon,
   label,
   value,
-  trend,
+  prefix = "",
+  suffix = "",
   progress,
+  color = "purple",
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
-  trend?: string;
+  value: number;
+  prefix?: string;
+  suffix?: string;
   progress?: number;
+  color?: "orange" | "green" | "purple" | "yellow";
 }) {
+  const colors = {
+    orange: { text: "text-orange-400", bg: "bg-orange-500/20", gradient: "from-orange-500 to-amber-500" },
+    green: { text: "text-green-400", bg: "bg-green-500/20", gradient: "from-green-500 to-emerald-500" },
+    purple: { text: "text-purple-400", bg: "bg-purple-500/20", gradient: "from-purple-500 to-pink-500" },
+    yellow: { text: "text-yellow-400", bg: "bg-yellow-500/20", gradient: "from-yellow-500 to-orange-500" },
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      className={`relative overflow-hidden rounded-2xl p-4 ${colors[color].bg} backdrop-blur-sm border border-white/10`}
+      whileHover={{ scale: 1.03, y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.2 }}
     >
-      <GlassCard className="p-4">
-        <div className="flex items-center gap-3 mb-2">
-          {icon}
-          <span className="text-white/60 text-sm">{label}</span>
+      {/* Animated background glow */}
+      <motion.div
+        className={`absolute -top-4 -right-4 w-16 h-16 bg-gradient-to-br ${colors[color].gradient} rounded-full blur-2xl opacity-40`}
+        animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.5, 0.3] }}
+        transition={{ duration: 3, repeat: Infinity }}
+      />
+      
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-1">
+          <span className={`${colors[color].text}`}>{icon}</span>
+          <span className="text-white/40 text-xs font-medium uppercase tracking-wide">{label}</span>
         </div>
-        <div className="flex items-end justify-between">
-          <span className="text-2xl font-bold text-white">{value}</span>
-          {trend && (
-            <span className="text-green-400 text-sm">{trend}</span>
-          )}
+        <div className={`text-2xl md:text-3xl font-bold ${colors[color].text}`}>
+          {prefix}<CountUp end={value} duration={1.5} />{suffix}
         </div>
         {progress !== undefined && (
-          <div className="mt-2 h-1 bg-white/10 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
-              style={{ width: `${progress}%` }}
+          <div className="mt-3 h-1.5 bg-white/10 rounded-full overflow-hidden">
+            <motion.div
+              className={`h-full bg-gradient-to-r ${colors[color].gradient} rounded-full`}
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
             />
           </div>
         )}
-      </GlassCard>
+      </div>
     </motion.div>
   );
 }
@@ -349,24 +398,38 @@ function PillarCard({
   return (
     <Link href={href}>
       <motion.div
-        whileHover={{ scale: 1.02, y: -3 }}
+        className="relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-4 cursor-pointer group"
+        whileHover={{ scale: 1.03, y: -4 }}
+        whileTap={{ scale: 0.97 }}
         transition={{ duration: 0.2 }}
       >
-        <GlassCard className="relative overflow-hidden p-4">
-          <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${gradients[pillar]} opacity-20 blur-2xl`} />
-          
+        {/* Animated background gradient */}
+        <motion.div 
+          className={`absolute top-0 right-0 w-28 h-28 bg-gradient-to-br ${gradients[pillar]} opacity-20 blur-2xl`}
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ duration: 4, repeat: Infinity }}
+        />
+        
+        <div className="relative z-10">
           <div className="flex items-center justify-between mb-3">
-            <div className={`p-2 rounded-lg bg-gradient-to-br ${gradients[pillar]}`}>
+            <motion.div 
+              className={`p-2.5 rounded-xl bg-gradient-to-br ${gradients[pillar]} shadow-lg`}
+              whileHover={{ rotate: [0, -10, 10, 0] }}
+              transition={{ duration: 0.4 }}
+            >
               {icon}
-            </div>
-            <ProgressRing progress={progress} size={44} strokeWidth={3} color={pillar} showLabel={false} />
+            </motion.div>
+            <ProgressRing progress={progress} size={42} strokeWidth={3} color={pillar} showLabel={false} />
           </div>
 
-          <h3 className="text-base font-semibold text-white mb-0.5">{title}</h3>
-          <p className="text-white/60 text-xs">
-            {habits} habit{habits !== 1 ? "s" : ""} • {progress}%
-          </p>
-        </GlassCard>
+          <h3 className="text-base font-bold text-white mb-0.5 group-hover:text-white/90">{title}</h3>
+          <div className="flex items-center justify-between">
+            <p className="text-white/50 text-xs">
+              {habits} habit{habits !== 1 ? "s" : ""}
+            </p>
+            <span className="text-white/30 text-lg group-hover:text-white/50 transition-colors">→</span>
+          </div>
+        </div>
       </motion.div>
     </Link>
   );
@@ -374,6 +437,7 @@ function PillarCard({
 
 function HabitItem({ habit }: { habit: any }) {
   const [completed, setCompleted] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
@@ -390,56 +454,83 @@ function HabitItem({ habit }: { habit: any }) {
     if (!user) return;
 
     if (!completed) {
+      setIsAnimating(true);
       await supabase.from("habit_completions").insert({
         habit_id: habit.id,
         user_id: user.id,
         completed_at: new Date().toISOString(),
       });
+      setTimeout(() => setIsAnimating(false), 500);
     }
     
     setCompleted(!completed);
   };
 
   const pillarColors: Record<string, string> = {
-    physical: "border-l-purple-500",
-    mental: "border-l-pink-500",
-    fiscal: "border-l-cyan-500",
-    social: "border-l-orange-500",
-    spiritual: "border-l-violet-500",
-    intellectual: "border-l-yellow-500",
-    occupational: "border-l-green-500",
-    environmental: "border-l-teal-500",
+    physical: "border-l-purple-500 bg-purple-500/5",
+    mental: "border-l-pink-500 bg-pink-500/5",
+    fiscal: "border-l-cyan-500 bg-cyan-500/5",
+    social: "border-l-orange-500 bg-orange-500/5",
+    spiritual: "border-l-violet-500 bg-violet-500/5",
+    intellectual: "border-l-yellow-500 bg-yellow-500/5",
+    occupational: "border-l-green-500 bg-green-500/5",
+    environmental: "border-l-teal-500 bg-teal-500/5",
   };
 
   return (
     <motion.div
       layout
       className={`
-        flex items-center gap-4 p-4 rounded-xl bg-white/5 border-l-4
-        ${pillarColors[habit.pillar] || "border-l-purple-500"}
+        relative flex items-center gap-4 p-4 rounded-xl border-l-4 overflow-hidden
+        ${pillarColors[habit.pillar] || "border-l-purple-500 bg-purple-500/5"}
         ${completed ? "opacity-60" : ""}
       `}
+      whileTap={{ scale: 0.98 }}
     >
-      <button
+      {/* Success animation overlay */}
+      {isAnimating && (
+        <motion.div
+          className="absolute inset-0 bg-green-500/20"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: [0, 1, 0], scale: 1 }}
+          transition={{ duration: 0.5 }}
+        />
+      )}
+      
+      <motion.button
         onClick={handleToggle}
         className={`
-          w-6 h-6 rounded-full border-2 flex items-center justify-center
+          relative w-7 h-7 rounded-full border-2 flex items-center justify-center
           transition-all duration-200
           ${completed
             ? "bg-green-500 border-green-500"
-            : "border-white/30 hover:border-white/50"
+            : "border-white/30 hover:border-white/50 active:scale-90"
           }
         `}
+        whileTap={{ scale: 0.8 }}
       >
-        {completed && <CheckCircle2 className="w-4 h-4 text-white" />}
-      </button>
-      <div className="flex-1">
-        <div className={`font-medium ${completed ? "text-white/60 line-through" : "text-white"}`}>
+        {completed && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <CheckCircle2 className="w-5 h-5 text-white" />
+          </motion.div>
+        )}
+      </motion.button>
+      <div className="flex-1 min-w-0">
+        <div className={`font-medium truncate ${completed ? "text-white/50 line-through" : "text-white"}`}>
           {habit.name}
         </div>
-        <div className="text-white/40 text-sm capitalize">{habit.pillar}</div>
+        <div className="text-white/40 text-xs capitalize">{habit.pillar}</div>
       </div>
-      <div className="text-purple-400 text-sm">+{habit.xpReward} XP</div>
+      <motion.div 
+        className="text-purple-400 text-sm font-medium whitespace-nowrap"
+        animate={isAnimating ? { scale: [1, 1.2, 1] } : {}}
+      >
+        +{habit.xpReward} XP
+      </motion.div>
     </motion.div>
   );
 }
