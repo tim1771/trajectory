@@ -85,7 +85,11 @@ export default function EnvironmentalPage() {
   }, []);
 
   const handleAddHabit = async (name: string, xp: number = 10) => {
+    if (!name.trim()) return;
+    
     setLoading(true);
+    sound.click();
+    
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
@@ -119,10 +123,12 @@ export default function EnvironmentalPage() {
         completions: [],
       });
 
+      sound.success();
       setShowAddModal(false);
       setNewHabitName("");
     } catch (err) {
       console.error("Failed to add habit:", err);
+      sound.error();
     } finally {
       setLoading(false);
     }
@@ -290,14 +296,17 @@ export default function EnvironmentalPage() {
                   {HABIT_TEMPLATES.map((template) => (
                     <button
                       key={template.name}
-                      onClick={() => handleAddHabit(template.name, template.xp)}
+                      onClick={() => {
+                        sound.click();
+                        handleAddHabit(template.name, template.xp);
+                      }}
                       disabled={loading}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-left"
+                      className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <div className="w-10 h-10 rounded-lg bg-gradient-environmental flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-environmental flex items-center justify-center flex-shrink-0">
                         <template.icon className="w-5 h-5 text-white" />
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="text-white font-medium">{template.name}</div>
                         <div className="text-white/40 text-sm">+{template.xp} XP</div>
                       </div>
