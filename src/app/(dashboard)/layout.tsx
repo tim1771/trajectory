@@ -28,6 +28,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useUserStore } from "@/stores/userStore";
 import { SoundscapePlayer } from "@/components/SoundscapePlayer";
 import { FloatingOrbs } from "@/components/ui/FloatingElements";
+import { LevelUpCelebration } from "@/components/LevelUpCelebration";
 
 // 8 Dimensions of Wellness navigation
 const pillarItems = [
@@ -111,6 +112,9 @@ export default function DashboardLayout({
     <div className="min-h-screen flex relative overflow-hidden">
       {/* Ambient floating elements */}
       <FloatingOrbs />
+      
+      {/* Level up celebration overlay */}
+      <LevelUpCelebration />
       
       {/* Mobile menu button */}
       <button
