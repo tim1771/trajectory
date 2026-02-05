@@ -142,44 +142,51 @@ export default function PhysicalPage() {
   };
 
   const handleToggleComplete = async (habit: Habit) => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) return;
-
     const isCompletedToday = habit.completions?.some(
       (c: any) => c.completed_at?.startsWith(today)
     );
 
     if (!isCompletedToday) {
-      const { data } = await supabase
-        .from("habit_completions")
-        .insert({
-          habit_id: habit.id,
-          user_id: user.id,
-          completed_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+      try {
+        const response = await fetch("/api/habits/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ habitId: habit.id }),
+        });
 
-      if (data) {
-        // Update local state
+        const data = await response.json();
+
+        if (!response.ok) {
+          if (data.alreadyCompleted) return; // Silently ignore if already completed
+          throw new Error(data.error);
+        }
+
+        // Update local state with the completion
         const updatedHabits = habits.map((h) =>
           h.id === habit.id
-            ? { ...h, completions: [...h.completions, data] }
+            ? { ...h, completions: [...h.completions, data.completion] }
             : h
         );
         setHabits(updatedHabits);
 
-        // Award XP
-        await supabase
-          .from("user_profiles")
-          .update({
-            xp_points: useUserStore.getState().profile!.xpPoints + habit.xpReward,
-          })
-          .eq("user_id", user.id);
+        // Update XP in store
+        useUserStore.getState().addXP(data.totalXP);
 
-        useUserStore.getState().addXP(habit.xpReward);
+        // Update streak in store
+        if (data.streak) {
+          useUserStore.getState().setProfile({
+            ...useUserStore.getState().profile!,
+            currentStreak: data.streak.current,
+            longestStreak: data.streak.longest,
+          });
+        }
+
+        // Show milestone notification if achieved
+        if (data.milestone) {
+          alert(`🎉 ${data.milestone} +${data.bonusXP} bonus XP!`);
+        }
+      } catch (err) {
+        console.error("Failed to complete habit:", err);
       }
     }
   };

@@ -149,42 +149,47 @@ export default function EnvironmentalPage() {
   };
 
   const handleToggleComplete = async (habit: Habit) => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) return;
-
     const isCompletedToday = habit.completions?.some(
       (c: any) => c.completed_at?.startsWith(today)
     );
 
     if (!isCompletedToday) {
-      const { data } = await supabase
-        .from("habit_completions")
-        .insert({
-          habit_id: habit.id,
-          user_id: user.id,
-          completed_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+      try {
+        const response = await fetch("/api/habits/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ habitId: habit.id }),
+        });
 
-      if (data) {
+        const data = await response.json();
+
+        if (!response.ok) {
+          if (data.alreadyCompleted) return;
+          throw new Error(data.error);
+        }
+
         const updatedHabits = habits.map((h) =>
           h.id === habit.id
-            ? { ...h, completions: [...h.completions, data] }
+            ? { ...h, completions: [...h.completions, data.completion] }
             : h
         );
         setHabits(updatedHabits);
 
-        await supabase
-          .from("user_profiles")
-          .update({
-            xp_points: useUserStore.getState().profile!.xpPoints + habit.xpReward,
-          })
-          .eq("user_id", user.id);
+        useUserStore.getState().addXP(data.totalXP);
 
-        useUserStore.getState().addXP(habit.xpReward);
+        if (data.streak) {
+          useUserStore.getState().setProfile({
+            ...useUserStore.getState().profile!,
+            currentStreak: data.streak.current,
+            longestStreak: data.streak.longest,
+          });
+        }
+
+        if (data.milestone) {
+          alert(`🎉 ${data.milestone} +${data.bonusXP} bonus XP!`);
+        }
+      } catch (err) {
+        console.error("Failed to complete habit:", err);
       }
     }
   };
