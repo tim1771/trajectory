@@ -75,6 +75,9 @@ export interface UserProfile {
 }
 
 export interface OnboardingData {
+  // Avatar
+  gender: "male" | "female";
+  
   // Physical
   fitnessLevel: "beginner" | "intermediate" | "advanced";
   exerciseGoals: string[];

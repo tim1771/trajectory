@@ -6,8 +6,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowRight, ArrowLeft, Target, Brain, Wallet, 
   Sparkles, Check, Dumbbell, Moon, Salad, 
-  HeartPulse, BookOpen, DollarSign, Clock
+  HeartPulse, BookOpen, DollarSign, Clock,
+  Users, Leaf, Briefcase, Lightbulb
 } from "lucide-react";
+import Image from "next/image";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { createClient } from "@/lib/supabase/client";
@@ -20,6 +22,7 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<Partial<OnboardingData>>({
+    gender: "male", // Default gender for avatar
     fitnessLevel: "beginner",
     exerciseGoals: [],
     sleepHours: 7,
@@ -91,7 +94,7 @@ export default function OnboardingPage() {
   const renderStep = () => {
     switch (step) {
       case 1:
-        return <WelcomeStep />;
+        return <WelcomeStep data={data} updateData={updateData} />;
       case 2:
         return (
           <PhysicalStep
@@ -196,31 +199,108 @@ export default function OnboardingPage() {
   );
 }
 
-function WelcomeStep() {
+function WelcomeStep({ data, updateData }: { data: Partial<OnboardingData>; updateData: (updates: Partial<OnboardingData>) => void }) {
+  const gender = (data.gender as "male" | "female") || "male";
+  
   return (
-    <GlassCard className="text-center py-12">
+    <GlassCard className="text-center py-8">
       <motion.div
         initial={{ scale: 0.8 }}
         animate={{ scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="mb-8"
+        className="mb-6"
       >
-        <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-6">
-          <Sparkles className="w-10 h-10 text-white" />
-        </div>
-        <h1 className="text-3xl font-bold text-white mb-4">
+        <h1 className="text-3xl font-bold text-white mb-2">
           Welcome to Trajectory
         </h1>
-        <p className="text-white/60 text-lg max-w-md mx-auto">
-          Let's create your personalized plan. Answer a few questions so we can 
-          understand where you are and where you want to go.
+        <p className="text-white/60 text-base max-w-md mx-auto">
+          Choose your avatar and begin your journey to becoming your best self
         </p>
       </motion.div>
 
-      <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
+      {/* Avatar Selection */}
+      <div className="mb-8">
+        <p className="text-white/70 text-sm mb-4">Select your character</p>
+        <div className="flex justify-center gap-6">
+          {/* Male Avatar */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => updateData({ gender: "male" })}
+            className={`relative rounded-2xl overflow-hidden border-4 transition-all ${
+              gender === "male" 
+                ? "border-purple-500 shadow-lg shadow-purple-500/30" 
+                : "border-white/20 opacity-60 hover:opacity-100"
+            }`}
+          >
+            <Image
+              src="/avatars/m1.png"
+              alt="Male Avatar"
+              width={120}
+              height={120}
+              className="w-28 h-28 md:w-32 md:h-32 object-cover"
+            />
+            {gender === "male" && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute top-2 right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center"
+              >
+                <Check className="w-4 h-4 text-white" />
+              </motion.div>
+            )}
+            <div className="absolute bottom-0 inset-x-0 bg-black/60 py-1">
+              <span className="text-white text-sm">Male</span>
+            </div>
+          </motion.button>
+
+          {/* Female Avatar */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => updateData({ gender: "female" })}
+            className={`relative rounded-2xl overflow-hidden border-4 transition-all ${
+              gender === "female" 
+                ? "border-pink-500 shadow-lg shadow-pink-500/30" 
+                : "border-white/20 opacity-60 hover:opacity-100"
+            }`}
+          >
+            <Image
+              src="/avatars/f1.png"
+              alt="Female Avatar"
+              width={120}
+              height={120}
+              className="w-28 h-28 md:w-32 md:h-32 object-cover"
+            />
+            {gender === "female" && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute top-2 right-2 w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center"
+              >
+                <Check className="w-4 h-4 text-white" />
+              </motion.div>
+            )}
+            <div className="absolute bottom-0 inset-x-0 bg-black/60 py-1">
+              <span className="text-white text-sm">Female</span>
+            </div>
+          </motion.button>
+        </div>
+        <p className="text-white/40 text-xs mt-3">
+          Your avatar evolves as you level up!
+        </p>
+      </div>
+
+      {/* 8 Pillars Preview */}
+      <div className="grid grid-cols-4 gap-3 max-w-md mx-auto">
         <PillarBadge icon={<Target />} label="Physical" color="from-[#667eea] to-[#764ba2]" />
         <PillarBadge icon={<Brain />} label="Mental" color="from-[#f093fb] to-[#f5576c]" />
         <PillarBadge icon={<Wallet />} label="Fiscal" color="from-[#4facfe] to-[#00f2fe]" />
+        <PillarBadge icon={<Users />} label="Social" color="from-[#f97316] to-[#ef4444]" />
+        <PillarBadge icon={<Sparkles />} label="Spiritual" color="from-[#8b5cf6] to-[#6d28d9]" />
+        <PillarBadge icon={<Lightbulb />} label="Intellectual" color="from-[#eab308] to-[#f97316]" />
+        <PillarBadge icon={<Briefcase />} label="Career" color="from-[#22c55e] to-[#10b981]" />
+        <PillarBadge icon={<Leaf />} label="Environment" color="from-[#14b8a6] to-[#06b6d4]" />
       </div>
     </GlassCard>
   );

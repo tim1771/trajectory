@@ -29,6 +29,7 @@ import { StaggeredList, StaggeredItem, FadeInOnScroll } from "@/components/ui/St
 import { useUserStore } from "@/stores/userStore";
 import { getGreeting, getLevelFromXP } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { AvatarShowcase } from "@/components/UserAvatar";
 import type { WellnessPillar } from "@/types";
 
 export default function DashboardPage() {
@@ -126,6 +127,11 @@ export default function DashboardPage() {
           <span className="text-white/80 ml-2"><CountUp end={profile?.xpPoints || 0} duration={1.5} /> XP</span>
         </p>
       </motion.div>
+
+      {/* Avatar Showcase */}
+      <FadeInOnScroll>
+        <AvatarShowcase />
+      </FadeInOnScroll>
 
       {/* Quick Stats - Animated Cards */}
       <StaggeredList className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
