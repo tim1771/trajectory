@@ -43,6 +43,7 @@ const pillarItems = [
 
 const toolItems = [
   { href: "/dashboard/coach", icon: MessageSquare, label: "AI Coach" },
+  { href: "/dashboard/insights", icon: Brain, label: "Insights" },
   { href: "/dashboard/library", icon: BookOpen, label: "Library" },
   { href: "/dashboard/community", icon: Users, label: "Community" },
   { href: "/dashboard/challenges", icon: Zap, label: "Challenges" },

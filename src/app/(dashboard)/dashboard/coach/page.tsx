@@ -10,10 +10,11 @@ import type { AIMessage } from "@/types";
 
 const SUGGESTED_PROMPTS = [
   "What habits should I start with?",
-  "I'm struggling with motivation today",
-  "How can I improve my sleep?",
-  "Give me a budgeting tip",
-  "Help me set a fitness goal",
+  "How do my pillars connect?",
+  "Help me build a morning routine",
+  "I'm struggling with motivation",
+  "Suggest a habit stack for me",
+  "How can I improve work-life balance?",
 ];
 
 export default function CoachPage() {
@@ -122,7 +123,7 @@ export default function CoachPage() {
                 How can I help you today?
               </h2>
               <p className="text-white/60 max-w-md mb-6">
-                I'm here to support your journey across physical, mental, and fiscal wellness. 
+                I'm here to support your journey across all 8 dimensions of wellness. 
                 Ask me anything!
               </p>
               

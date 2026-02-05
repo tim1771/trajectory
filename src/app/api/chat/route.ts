@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateCoachResponse } from "@/lib/groq/client";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { 
+  calculatePillarScores, 
+  getCorrelations,
+  getHabitStacks,
+} from "@/lib/analytics/insights";
 
 const FREE_TIER_DAILY_LIMIT = 10;
 
@@ -56,15 +61,42 @@ export async function POST(request: NextRequest) {
       .from("habits")
       .select("name, pillar")
       .eq("user_id", user.id)
-      .limit(5);
+      .limit(10);
 
     const onboardingData = profile?.onboarding_data as any;
+
+    // Get learning algorithm insights for personalized coaching
+    let insightsContext: any = {};
+    try {
+      const [pillarScores, correlations, habitStacks] = await Promise.all([
+        calculatePillarScores(supabase, user.id),
+        getCorrelations(supabase, true),
+        getHabitStacks(supabase, 3),
+      ]);
+      
+      // Find strongest and weakest pillars
+      const sortedPillars = [...pillarScores].sort((a, b) => b.score - a.score);
+      const strongestPillar = sortedPillars[0];
+      const weakestPillar = sortedPillars[sortedPillars.length - 1];
+      
+      insightsContext = {
+        pillarScores: pillarScores.map(p => `${p.pillar}: ${p.score}%`),
+        strongestPillar: strongestPillar?.pillar,
+        weakestPillar: weakestPillar?.pillar,
+        topCorrelation: correlations[0]?.insightText,
+        suggestedHabitStack: habitStacks[0]?.suggestionText,
+      };
+    } catch (e) {
+      // Insights tables may not exist yet - continue without them
+      console.log("Insights not available:", e);
+    }
 
     const response = await generateCoachResponse(messages, {
       level: profile?.level,
       streak: profile?.current_streak,
-      recentHabits: habits?.map((h) => h.name),
+      recentHabits: habits?.map((h) => `${h.name} (${h.pillar})`),
       challenges: onboardingData?.challenges,
+      insights: insightsContext,
     });
 
     // Add timestamps to user messages if missing
