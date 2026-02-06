@@ -12,6 +12,20 @@ const AVATAR_TIERS = [
   { minLevel: 31, maxLevel: Infinity, tier: 4, title: "Legend" },
 ];
 
+// Calculate XP needed for a specific level
+function getXPForLevel(level: number): number {
+  return Math.floor(100 * Math.pow(1.5, level - 1));
+}
+
+// Calculate total XP needed to reach a level (cumulative)
+function getTotalXPForLevel(level: number): number {
+  let total = 0;
+  for (let i = 1; i < level; i++) {
+    total += getXPForLevel(i);
+  }
+  return total;
+}
+
 function getAvatarTier(level: number): { tier: number; title: string } {
   for (const t of AVATAR_TIERS) {
     if (level >= t.minLevel && level <= t.maxLevel) {
@@ -172,6 +186,7 @@ export function AvatarShowcase() {
 
   const gender = (profile.onboardingData?.gender as "male" | "female") || "male";
   const level = profile.level || 1;
+  const xp = profile.xpPoints || 0;
   const { tier, title } = getAvatarTier(level);
   const avatarPath = getAvatarPath(gender, tier);
   
@@ -179,11 +194,21 @@ export function AvatarShowcase() {
   const nextTierData = AVATAR_TIERS.find(t => t.tier === tier + 1);
   
   let progressPercent = 100;
+  let xpToNextTier = 0;
+  let xpProgress = 0;
   
   if (nextTierData && currentTierData) {
-    const levelsInTier = currentTierData.maxLevel - currentTierData.minLevel + 1;
-    const currentProgress = level - currentTierData.minLevel;
-    progressPercent = Math.round((currentProgress / levelsInTier) * 100);
+    // Calculate XP needed for next tier (level at which next tier starts)
+    const xpForCurrentTierStart = getTotalXPForLevel(currentTierData.minLevel);
+    const xpForNextTierStart = getTotalXPForLevel(nextTierData.minLevel);
+    
+    // XP progress within current tier
+    const tierXpRange = xpForNextTierStart - xpForCurrentTierStart;
+    const currentXpInTier = xp - xpForCurrentTierStart;
+    
+    progressPercent = Math.min(100, Math.max(0, Math.round((currentXpInTier / tierXpRange) * 100)));
+    xpToNextTier = Math.max(0, xpForNextTierStart - xp);
+    xpProgress = currentXpInTier;
   }
 
   return (
@@ -239,7 +264,7 @@ export function AvatarShowcase() {
             <div>
               <div className="flex justify-between text-xs text-white/40 mb-1">
                 <span>Progress to {nextTierData.title}</span>
-                <span>{progressPercent}%</span>
+                <span>{xpToNextTier.toLocaleString()} XP to go</span>
               </div>
               <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                 <motion.div

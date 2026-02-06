@@ -63,21 +63,49 @@ export default function OnboardingPage() {
 
       console.log("Saving onboarding data for user:", user.id);
 
-      // Create or update user profile
-      const { error } = await supabase.from("user_profiles").upsert({
-        user_id: user.id,
-        onboarding_data: data,
-        onboarding_completed: true,
-        level: 1,
-        xp_points: 50, // Welcome bonus
-        current_streak: 0,
-        longest_streak: 0,
-        tier: "free",
-      });
+      // Check if profile already exists (created by auth trigger)
+      const { data: existingProfile } = await supabase
+        .from("user_profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
 
-      if (error) {
-        console.error("Supabase error:", error);
-        throw error;
+      if (existingProfile) {
+        // Update existing profile
+        const { error } = await supabase
+          .from("user_profiles")
+          .update({
+            onboarding_data: data,
+            onboarding_completed: true,
+            level: 1,
+            xp_points: 50, // Welcome bonus
+            current_streak: 0,
+            longest_streak: 0,
+            tier: "free",
+          })
+          .eq("user_id", user.id);
+
+        if (error) {
+          console.error("Supabase update error:", error);
+          throw error;
+        }
+      } else {
+        // Create new profile
+        const { error } = await supabase.from("user_profiles").insert({
+          user_id: user.id,
+          onboarding_data: data,
+          onboarding_completed: true,
+          level: 1,
+          xp_points: 50, // Welcome bonus
+          current_streak: 0,
+          longest_streak: 0,
+          tier: "free",
+        });
+
+        if (error) {
+          console.error("Supabase insert error:", error);
+          throw error;
+        }
       }
 
       console.log("Onboarding saved successfully, redirecting to dashboard...");
