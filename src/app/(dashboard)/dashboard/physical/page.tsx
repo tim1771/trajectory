@@ -20,6 +20,7 @@ import { GlassInput } from "@/components/ui/GlassInput";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { useUserStore } from "@/stores/userStore";
 import { createClient } from "@/lib/supabase/client";
+import { useSoundEffects } from "@/lib/sounds";
 import type { Habit } from "@/types";
 
 const HABIT_TEMPLATES = [
@@ -32,9 +33,11 @@ const HABIT_TEMPLATES = [
 
 export default function PhysicalPage() {
   const { habits, setHabits, addHabit, removeHabit } = useUserStore();
+  const sound = useSoundEffects();
   const [showAddModal, setShowAddModal] = useState(false);
   const [newHabitName, setNewHabitName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [completing, setCompleting] = useState<string | null>(null);
 
   const physicalHabits = habits.filter((h) => h.pillar === "physical");
   const today = new Date().toISOString().split("T")[0];
@@ -146,7 +149,8 @@ export default function PhysicalPage() {
       (c: any) => c.completed_at?.startsWith(today)
     );
 
-    if (!isCompletedToday) {
+    if (!isCompletedToday && !completing) {
+      setCompleting(habit.id);
       try {
         const response = await fetch("/api/habits/complete", {
           method: "POST",
@@ -157,9 +161,20 @@ export default function PhysicalPage() {
         const data = await response.json();
 
         if (!response.ok) {
-          if (data.alreadyCompleted) return; // Silently ignore if already completed
+          if (data.alreadyCompleted) {
+            // Already completed - refresh the habit state
+            const updatedHabits = habits.map((h) =>
+              h.id === habit.id
+                ? { ...h, completions: [...h.completions, { completed_at: new Date().toISOString() }] }
+                : h
+            );
+            setHabits(updatedHabits);
+            return;
+          }
           throw new Error(data.error);
         }
+
+        sound.success();
 
         // Update local state with the completion
         const updatedHabits = habits.map((h) =>
@@ -187,6 +202,9 @@ export default function PhysicalPage() {
         }
       } catch (err) {
         console.error("Failed to complete habit:", err);
+        sound.error();
+      } finally {
+        setCompleting(null);
       }
     }
   };
@@ -268,6 +286,7 @@ export default function PhysicalPage() {
               <HabitRow
                 key={habit.id}
                 habit={habit}
+                isCompleting={completing === habit.id}
                 onToggle={() => handleToggleComplete(habit)}
                 onDelete={() => handleDeleteHabit(habit.id)}
               />
@@ -349,10 +368,12 @@ export default function PhysicalPage() {
 
 function HabitRow({
   habit,
+  isCompleting,
   onToggle,
   onDelete,
 }: {
   habit: Habit;
+  isCompleting?: boolean;
   onToggle: () => void;
   onDelete: () => void;
 }) {
@@ -373,12 +394,14 @@ function HabitRow({
     >
       <button
         onClick={onToggle}
-        disabled={isCompletedToday}
+        disabled={isCompletedToday || isCompleting}
         className={`
           w-6 h-6 rounded-full border-2 flex items-center justify-center
           transition-all duration-200
           ${isCompletedToday
             ? "bg-green-500 border-green-500"
+            : isCompleting
+            ? "border-purple-500 animate-pulse"
             : "border-white/30 hover:border-purple-500"
           }
         `}
