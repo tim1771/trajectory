@@ -96,11 +96,21 @@ export async function POST(request: NextRequest) {
 
     totalXP += bonusXP;
 
-    // Award XP
+    // Award XP and calculate level
     const newXP = (profile?.xp_points || 0) + totalXP;
+    
+    // Calculate level from total XP
+    const xpForNextLevel = (level: number) => Math.floor(100 * Math.pow(1.5, level - 1));
+    let remainingXP = newXP;
+    let newLevel = 1;
+    while (remainingXP >= xpForNextLevel(newLevel)) {
+      remainingXP -= xpForNextLevel(newLevel);
+      newLevel++;
+    }
+
     await supabase
       .from("user_profiles")
-      .update({ xp_points: newXP })
+      .update({ xp_points: newXP, level: newLevel })
       .eq("user_id", user.id);
 
     return NextResponse.json({
@@ -109,6 +119,7 @@ export async function POST(request: NextRequest) {
       xpEarned: habit.xp_reward,
       bonusXP,
       totalXP,
+      newLevel,
       milestone,
       streak: {
         current: streakResult.currentStreak,
