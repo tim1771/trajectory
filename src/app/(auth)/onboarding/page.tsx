@@ -54,27 +54,39 @@ export default function OnboardingPage() {
     setLoading(true);
     try {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      if (authError) {
+        console.error("Auth error:", authError);
+        throw new Error("Authentication failed. Please try logging in again.");
+      }
 
       if (!user) {
         console.error("No user found");
-        throw new Error("Not authenticated");
+        throw new Error("Not authenticated. Please try logging in again.");
       }
 
       console.log("Saving onboarding data for user:", user.id);
 
       // Check if profile already exists (created by auth trigger)
-      const { data: existingProfile } = await supabase
+      // Use maybeSingle() to handle case where profile doesn't exist without throwing
+      const { data: existingProfile, error: selectError } = await supabase
         .from("user_profiles")
         .select("id")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (existingProfile) {
-        // Update existing profile
-        const { error } = await supabase
-          .from("user_profiles")
-          .update({
+      if (selectError) {
+        console.error("Error checking for existing profile:", selectError);
+        // Continue anyway - we'll try to upsert
+      }
+
+      // Always use upsert to handle both cases safely
+      const { error: upsertError } = await supabase
+        .from("user_profiles")
+        .upsert(
+          {
+            user_id: user.id,
             onboarding_data: data,
             onboarding_completed: true,
             level: 1,
@@ -82,30 +94,16 @@ export default function OnboardingPage() {
             current_streak: 0,
             longest_streak: 0,
             tier: "free",
-          })
-          .eq("user_id", user.id);
+          },
+          {
+            onConflict: "user_id",
+            ignoreDuplicates: false,
+          }
+        );
 
-        if (error) {
-          console.error("Supabase update error:", error);
-          throw error;
-        }
-      } else {
-        // Create new profile
-        const { error } = await supabase.from("user_profiles").insert({
-          user_id: user.id,
-          onboarding_data: data,
-          onboarding_completed: true,
-          level: 1,
-          xp_points: 50, // Welcome bonus
-          current_streak: 0,
-          longest_streak: 0,
-          tier: "free",
-        });
-
-        if (error) {
-          console.error("Supabase insert error:", error);
-          throw error;
-        }
+      if (upsertError) {
+        console.error("Supabase upsert error:", upsertError);
+        throw new Error(upsertError.message || "Failed to save profile");
       }
 
       console.log("Onboarding saved successfully, redirecting to dashboard...");
@@ -113,7 +111,8 @@ export default function OnboardingPage() {
       router.refresh();
     } catch (err) {
       console.error("Failed to save onboarding:", err);
-      alert(`Error: ${err instanceof Error ? err.message : "Failed to complete onboarding"}`);
+      const errorMessage = err instanceof Error ? err.message : "Failed to complete onboarding";
+      alert(`Error: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
