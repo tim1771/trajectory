@@ -169,6 +169,7 @@ export default function InsightsPage() {
                 size={140}
                 strokeWidth={12}
                 color="default"
+                showLabel={false}
               />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
