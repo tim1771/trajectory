@@ -27,9 +27,10 @@ import { GlassInput } from "@/components/ui/GlassInput";
 import { useUserStore } from "@/stores/userStore";
 import { createClient } from "@/lib/supabase/client";
 import { useSoundEffects } from "@/lib/sounds";
+import type { OnboardingData } from "@/types";
 
 export default function SettingsPage() {
-  const { profile, updateProfile, setProfile } = useUserStore();
+  const { profile, updateProfile } = useUserStore();
   const sound = useSoundEffects();
   const [displayName, setDisplayName] = useState(profile?.displayName || "");
   const [avatarGender, setAvatarGender] = useState<"male" | "female">(
@@ -119,8 +120,8 @@ export default function SettingsPage() {
       if (!user) return;
 
       // Get current onboarding data and update gender
-      const currentOnboardingData = profile?.onboardingData || {};
-      const updatedOnboardingData = {
+      const currentOnboardingData = (profile?.onboardingData || {}) as Partial<OnboardingData>;
+      const updatedOnboardingData: Partial<OnboardingData> = {
         ...currentOnboardingData,
         gender: avatarGender,
       };
@@ -134,14 +135,10 @@ export default function SettingsPage() {
         .eq("user_id", user.id);
 
       // Update local state
-      updateProfile({ displayName });
-      if (profile) {
-        setProfile({
-          ...profile,
-          displayName,
-          onboardingData: updatedOnboardingData,
-        });
-      }
+      updateProfile({ 
+        displayName,
+        onboardingData: updatedOnboardingData as OnboardingData,
+      });
       
       setSaved(true);
       sound.success();
