@@ -20,6 +20,7 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
+import Image from "next/image";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { GlassInput } from "@/components/ui/GlassInput";
@@ -28,9 +29,12 @@ import { createClient } from "@/lib/supabase/client";
 import { useSoundEffects } from "@/lib/sounds";
 
 export default function SettingsPage() {
-  const { profile, updateProfile } = useUserStore();
+  const { profile, updateProfile, setProfile } = useUserStore();
   const sound = useSoundEffects();
   const [displayName, setDisplayName] = useState(profile?.displayName || "");
+  const [avatarGender, setAvatarGender] = useState<"male" | "female">(
+    (profile?.onboardingData?.gender as "male" | "female") || "male"
+  );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -114,13 +118,33 @@ export default function SettingsPage() {
       
       if (!user) return;
 
+      // Get current onboarding data and update gender
+      const currentOnboardingData = profile?.onboardingData || {};
+      const updatedOnboardingData = {
+        ...currentOnboardingData,
+        gender: avatarGender,
+      };
+
       await supabase
         .from("user_profiles")
-        .update({ display_name: displayName })
+        .update({ 
+          display_name: displayName,
+          onboarding_data: updatedOnboardingData,
+        })
         .eq("user_id", user.id);
 
+      // Update local state
       updateProfile({ displayName });
+      if (profile) {
+        setProfile({
+          ...profile,
+          displayName,
+          onboardingData: updatedOnboardingData,
+        });
+      }
+      
       setSaved(true);
+      sound.success();
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
       console.error("Failed to save profile:", err);
@@ -179,7 +203,83 @@ export default function SettingsPage() {
           <h2 className="text-lg font-semibold text-white">Profile</h2>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
+          {/* Avatar Selection */}
+          <div>
+            <label className="block text-white/80 text-sm font-medium mb-3">
+              Avatar
+            </label>
+            <div className="flex gap-4">
+              {/* Male Avatar */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setAvatarGender("male")}
+                className={`relative rounded-xl overflow-hidden border-3 transition-all ${
+                  avatarGender === "male"
+                    ? "border-purple-500 shadow-lg shadow-purple-500/30"
+                    : "border-white/20 opacity-60 hover:opacity-100"
+                }`}
+              >
+                <Image
+                  src="/avatars/m1.png"
+                  alt="Male Avatar"
+                  width={80}
+                  height={80}
+                  className="w-20 h-20 object-cover"
+                />
+                {avatarGender === "male" && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute top-1 right-1 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center"
+                  >
+                    <Check className="w-3 h-3 text-white" />
+                  </motion.div>
+                )}
+                <div className="absolute bottom-0 inset-x-0 bg-black/60 py-0.5">
+                  <span className="text-white text-xs">Male</span>
+                </div>
+              </motion.button>
+
+              {/* Female Avatar */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setAvatarGender("female")}
+                className={`relative rounded-xl overflow-hidden border-3 transition-all ${
+                  avatarGender === "female"
+                    ? "border-pink-500 shadow-lg shadow-pink-500/30"
+                    : "border-white/20 opacity-60 hover:opacity-100"
+                }`}
+              >
+                <Image
+                  src="/avatars/f1.png"
+                  alt="Female Avatar"
+                  width={80}
+                  height={80}
+                  className="w-20 h-20 object-cover"
+                />
+                {avatarGender === "female" && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute top-1 right-1 w-5 h-5 bg-pink-500 rounded-full flex items-center justify-center"
+                  >
+                    <Check className="w-3 h-3 text-white" />
+                  </motion.div>
+                )}
+                <div className="absolute bottom-0 inset-x-0 bg-black/60 py-0.5">
+                  <span className="text-white text-xs">Female</span>
+                </div>
+              </motion.button>
+            </div>
+            <p className="text-white/40 text-xs mt-2">
+              Your avatar evolves as you level up!
+            </p>
+          </div>
+
+          {/* Display Name */}
           <GlassInput
             label="Display Name"
             value={displayName}
