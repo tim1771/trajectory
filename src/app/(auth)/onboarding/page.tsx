@@ -13,6 +13,7 @@ import Image from "next/image";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { createClient } from "@/lib/supabase/client";
+import { getLocalSession, makeDefaultProfile, saveLocalProfile } from "@/lib/localAuth";
 import type { OnboardingData } from "@/types";
 
 const TOTAL_STEPS = 5;
@@ -53,6 +54,14 @@ export default function OnboardingPage() {
   const handleComplete = async () => {
     setLoading(true);
     try {
+      const localUser = getLocalSession();
+      if (localUser) {
+        saveLocalProfile(makeDefaultProfile(localUser, data as OnboardingData));
+        router.push("/dashboard");
+        router.refresh();
+        return;
+      }
+
       const supabase = createClient();
       const { data: { user }, error: authError } = await supabase.auth.getUser();
 

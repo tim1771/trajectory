@@ -42,42 +42,46 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchHabits = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) return;
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
 
-      const { data: habitsData } = await supabase
-        .from("habits")
-        .select("*, habit_completions(*)")
-        .eq("user_id", user.id)
-        .eq("archived", false);
+        if (!user) return;
 
-      if (habitsData) {
-        const today = new Date().toISOString().split("T")[0];
-        const formattedHabits = habitsData.map((h: any) => ({
-          id: h.id,
-          userId: h.user_id,
-          pillar: h.pillar,
-          name: h.name,
-          description: h.description,
-          frequency: h.frequency,
-          targetDays: h.target_days,
-          xpReward: h.xp_reward,
-          archived: h.archived,
-          completions: h.habit_completions || [],
-        }));
-        setHabits(formattedHabits);
+        const { data: habitsData } = await supabase
+          .from("habits")
+          .select("*, habit_completions(*)")
+          .eq("user_id", user.id)
+          .eq("archived", false);
 
-        // Calculate today's stats
-        const todayCompletions = formattedHabits.filter((h: any) =>
-          h.completions.some((c: any) => c.completed_at.startsWith(today))
-        );
-        setTodayStats({
-          completed: todayCompletions.length,
-          total: formattedHabits.length,
-          xpEarned: todayCompletions.reduce((sum: number, h: any) => sum + h.xpReward, 0),
-        });
+        if (habitsData) {
+          const today = new Date().toISOString().split("T")[0];
+          const formattedHabits = habitsData.map((h: any) => ({
+            id: h.id,
+            userId: h.user_id,
+            pillar: h.pillar,
+            name: h.name,
+            description: h.description,
+            frequency: h.frequency,
+            targetDays: h.target_days,
+            xpReward: h.xp_reward,
+            archived: h.archived,
+            completions: h.habit_completions || [],
+          }));
+          setHabits(formattedHabits);
+
+          // Calculate today's stats
+          const todayCompletions = formattedHabits.filter((h: any) =>
+            h.completions.some((c: any) => c.completed_at.startsWith(today))
+          );
+          setTodayStats({
+            completed: todayCompletions.length,
+            total: formattedHabits.length,
+            xpEarned: todayCompletions.reduce((sum: number, h: any) => sum + h.xpReward, 0),
+          });
+        }
+      } catch (error) {
+        console.warn("Habit sync unavailable; showing local dashboard state.", error);
       }
     };
 

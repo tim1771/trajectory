@@ -25,6 +25,7 @@ import {
   Zap,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { getLocalProfile, getLocalSession, makeDefaultProfile, signOutLocal } from "@/lib/localAuth";
 import { useUserStore } from "@/stores/userStore";
 import { SoundscapePlayer } from "@/components/SoundscapePlayer";
 import { FloatingOrbs } from "@/components/ui/FloatingElements";
@@ -65,37 +66,48 @@ export default function DashboardLayout({
 
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.push("/login");
+      const localUser = getLocalSession();
+      if (localUser) {
+        setProfile(getLocalProfile(localUser.id) || makeDefaultProfile(localUser));
         return;
       }
 
-      // Fetch user profile
-      const { data: profileData } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
 
-      if (profileData) {
-        setProfile({
-          id: profileData.id,
-          userId: profileData.user_id,
-          displayName: profileData.display_name,
-          avatarUrl: profileData.avatar_url,
-          onboardingData: profileData.onboarding_data as any,
-          onboardingCompleted: profileData.onboarding_completed,
-          level: profileData.level,
-          xpPoints: profileData.xp_points,
-          currentStreak: profileData.current_streak,
-          longestStreak: profileData.longest_streak,
-          tier: profileData.tier as "free" | "premium",
-        });
-      } else if (!pathname.includes("/onboarding")) {
-        router.push("/onboarding");
+        if (!user) {
+          router.push("/login");
+          return;
+        }
+
+        // Fetch user profile
+        const { data: profileData } = await supabase
+          .from("user_profiles")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+
+        if (profileData) {
+          setProfile({
+            id: profileData.id,
+            userId: profileData.user_id,
+            displayName: profileData.display_name,
+            avatarUrl: profileData.avatar_url,
+            onboardingData: profileData.onboarding_data as any,
+            onboardingCompleted: profileData.onboarding_completed,
+            level: profileData.level,
+            xpPoints: profileData.xp_points,
+            currentStreak: profileData.current_streak,
+            longestStreak: profileData.longest_streak,
+            tier: profileData.tier as "free" | "premium",
+          });
+        } else if (!pathname.includes("/onboarding")) {
+          router.push("/onboarding");
+        }
+      } catch (error) {
+        console.warn("Supabase auth unavailable; using local auth fallback if present.", error);
+        router.push("/login");
       }
     };
 
@@ -104,7 +116,8 @@ export default function DashboardLayout({
 
   const handleSignOut = async () => {
     const supabase = createClient();
-    await supabase.auth.signOut();
+    await supabase.auth.signOut().catch(() => undefined);
+    signOutLocal();
     useUserStore.getState().reset();
     router.push("/");
   };

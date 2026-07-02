@@ -14,7 +14,7 @@ The product is repositioned from a broad wellness tracker into a goal-achievemen
 
 - **Framework**: Next.js App Router
 - **Styling**: Tailwind CSS
-- **Backend**: Supabase Auth/Postgres
+- **Backend**: Supabase Auth/Postgres, with a local-first browser fallback so auth still works while Supabase is paused/unavailable
 - **AI**: Groq API for goal breakdown and coaching
 - **State**: Zustand
 - **Charts**: Recharts

@@ -59,8 +59,13 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refresh session if expired
-  await supabase.auth.getUser();
+  // Refresh session if expired. If Supabase is paused/unreachable, do not block
+  // the app; client-side local auth can still let users in.
+  try {
+    await supabase.auth.getUser();
+  } catch (error) {
+    console.warn("Supabase middleware session refresh failed; continuing.", error);
+  }
 
   return response;
 }
