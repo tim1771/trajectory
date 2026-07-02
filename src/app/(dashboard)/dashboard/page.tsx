@@ -29,6 +29,7 @@ import { StaggeredList, StaggeredItem, FadeInOnScroll } from "@/components/ui/St
 import { useUserStore } from "@/stores/userStore";
 import { getGreeting, getLevelFromXP } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { getLocalSession } from "@/lib/localAuth";
 import { AvatarShowcase } from "@/components/UserAvatar";
 import type { WellnessPillar } from "@/types";
 
@@ -42,6 +43,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchHabits = async () => {
+      if (getLocalSession()) return;
+
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();

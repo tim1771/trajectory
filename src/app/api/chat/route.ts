@@ -8,9 +8,18 @@ import {
 } from "@/lib/analytics/insights";
 
 const FREE_TIER_DAILY_LIMIT = 10;
+const AI_RESPONSE_TIMEOUT_MS = 7500;
+
+export const runtime = "nodejs";
+export const maxDuration = 10;
+
+type ChatMessage = {
+  role: "user" | "assistant" | "system";
+  content: string;
+};
 
 type ChatRequestBody = {
-  messages?: { role: "user" | "assistant" | "system"; content: string }[];
+  messages?: ChatMessage[];
   localContext?: {
     level?: number;
     streak?: number;
@@ -18,6 +27,21 @@ type ChatRequestBody = {
     challenges?: string[];
   };
 };
+
+function fallbackCoachMessage(messages: ChatMessage[] = []) {
+  const latestUserMessage = [...messages]
+    .reverse()
+    .find((message) => message.role === "user")?.content || "your goal";
+
+  return `I can help with that. The coach is running in fast fallback mode right now so the app does not time out.\n\nFor "${latestUserMessage}":\n1. Pick one action small enough to finish today.\n2. Make it measurable: what counts as done?\n3. Schedule the next repetition before you finish.\n4. If you miss, use the don't-miss-twice rule instead of restarting from zero.`;
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,41 +58,44 @@ export async function POST(request: NextRequest) {
     let userId: string | null = null;
     let supabase: Awaited<ReturnType<typeof createServerSupabaseClient>> | null = null;
 
-    // Supabase is optional now: local/demo auth stores its session in browser
-    // localStorage, so this route must still answer when Supabase is paused or
-    // there is no Supabase cookie on the request.
-    try {
-      supabase = await createServerSupabaseClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      userId = user?.id || null;
+    // Local/demo auth lives in browser localStorage, which server routes cannot
+    // read. The client sends safe localContext for that mode, so skip Supabase
+    // entirely when localContext exists. This prevents paused Supabase projects
+    // from hanging long enough to hit Netlify's function timeout.
+    if (!body.localContext) {
+      try {
+        supabase = await createServerSupabaseClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        userId = user?.id || null;
 
-      if (userId) {
-        const { data: profileData } = await supabase
-          .from("user_profiles")
-          .select("tier, level, current_streak, onboarding_data")
-          .eq("user_id", userId)
-          .single();
+        if (userId) {
+          const { data: profileData } = await supabase
+            .from("user_profiles")
+            .select("tier, level, current_streak, onboarding_data")
+            .eq("user_id", userId)
+            .single();
 
-        if (profileData) {
-          profile = profileData;
+          if (profileData) {
+            profile = profileData;
+          }
+
+          const { data: conversationData } = await supabase
+            .from("ai_conversations")
+            .select("id, messages")
+            .eq("user_id", userId)
+            .single();
+          existingConversation = conversationData;
+
+          const { data: habitsData } = await supabase
+            .from("habits")
+            .select("name, pillar")
+            .eq("user_id", userId)
+            .limit(10);
+          habits = habitsData || [];
         }
-
-        const { data: conversationData } = await supabase
-          .from("ai_conversations")
-          .select("id, messages")
-          .eq("user_id", userId)
-          .single();
-        existingConversation = conversationData;
-
-        const { data: habitsData } = await supabase
-          .from("habits")
-          .select("name, pillar")
-          .eq("user_id", userId)
-          .limit(10);
-        habits = habitsData || [];
+      } catch (error) {
+        console.warn("Supabase unavailable for chat; continuing without persisted context.", error);
       }
-    } catch (error) {
-      console.warn("Supabase unavailable for chat; continuing with local context.", error);
     }
 
     if (profile?.tier === "free" || !profile?.tier) {
@@ -117,13 +144,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const response = await generateCoachResponse(messages, {
-      level: profile?.level,
-      streak: profile?.current_streak || profile?.streak,
-      recentHabits: habits.map((habit) => `${habit.name} (${habit.pillar})`),
-      challenges: onboardingData?.challenges || profile?.challenges,
-      insights: insightsContext,
-    });
+    const response = await withTimeout(
+      generateCoachResponse(messages, {
+        level: profile?.level,
+        streak: profile?.current_streak || profile?.streak,
+        recentHabits: habits.map((habit) => `${habit.name} (${habit.pillar})`),
+        challenges: onboardingData?.challenges || profile?.challenges,
+        insights: insightsContext,
+      }),
+      AI_RESPONSE_TIMEOUT_MS,
+      fallbackCoachMessage(messages)
+    );
 
     if (supabase && userId) {
       const messagesWithTimestamps = messages.map((message: any) => ({
