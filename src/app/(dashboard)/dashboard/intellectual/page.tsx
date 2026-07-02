@@ -189,7 +189,7 @@ export default function IntellectualPage() {
                 ? { ...h, completions: [...h.completions, { completed_at: new Date().toISOString() }] }
                 : h
             );
-            setHabits(updatedHabits);
+            setHabits(updatedHabits as any);
             return;
           }
           throw new Error(data.error);
@@ -202,7 +202,7 @@ export default function IntellectualPage() {
             ? { ...h, completions: [...h.completions, data.completion] }
             : h
         );
-        setHabits(updatedHabits);
+        setHabits(updatedHabits as any);
 
         useUserStore.getState().addXP(data.totalXP);
 

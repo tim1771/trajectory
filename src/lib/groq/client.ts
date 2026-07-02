@@ -107,6 +107,53 @@ ${userContext.challenges?.length ? `- Challenges they mentioned: ${userContext.c
   return completion.choices[0]?.message?.content || "I'm here to help. What would you like to work on today?";
 }
 
+export async function generateGoalBreakdown(goal: string) {
+  const fallback = {
+    smart_goal: goal || "Build a meaningful goal with a clear finish line",
+    identity_statement: "I am becoming the kind of person who follows through on the commitments that matter.",
+    outcome_metric: "Weekly measurable progress toward the target outcome",
+    target_date: "12 weeks from today",
+    milestones: [
+      "Clarify the exact outcome and success metric",
+      "Complete the first two weeks of process habits",
+      "Review pacing and adjust the plan",
+      "Finish the final milestone and document the result",
+    ],
+    process_habits: [
+      "Schedule three focused work blocks per week",
+      "Log one progress note at the end of each day",
+    ],
+    first_action: "Spend 15 minutes today defining the measurable version of this goal.",
+    risks: ["Planning too aggressively", "Missing a day and quitting"],
+    mitigations: ["Use weekly review to re-plan", "Follow the don't-miss-twice rule"],
+  };
+
+  if (!goal.trim() || !process.env.GROQ_API_KEY) {
+    return fallback;
+  }
+
+  const groq = getGroqClient();
+  const completion = await groq.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    messages: [
+      {
+        role: "system",
+        content: `You are Trajectory's AI goal-breakdown engine. Convert vague ambitions into realistic SMART goals. Return valid JSON only with this exact shape: {"smart_goal":"string","identity_statement":"string","outcome_metric":"string","target_date":"string","milestones":["string"],"process_habits":["string"],"first_action":"string","risks":["string"],"mitigations":["string"]}. Keep it concise, practical, and encouraging.`,
+      },
+      { role: "user", content: goal },
+    ],
+    temperature: 0.35,
+    max_tokens: 900,
+  });
+
+  const content = completion.choices[0]?.message?.content || "{}";
+  try {
+    return { ...fallback, ...JSON.parse(content) };
+  } catch {
+    return fallback;
+  }
+}
+
 export async function generatePersonalizedPlan(onboardingData: any) {
   const prompt = `Based on this user's onboarding data, create a personalized 7-day starter plan:
 

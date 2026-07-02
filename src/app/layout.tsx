@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Trajectory - Your Path to Your Best Self",
-  description: "A holistic wellness app for 8 dimensions of wellness: physical, mental, fiscal, social, spiritual, intellectual, occupational, and environmental",
+  title: "Trajectory Pro - AI Goal Coach",
+  description: "Trajectory Pro turns vague ambitions into SMART goals, process habits, weekly reviews, and evidence-based progress systems.",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#667eea",
+  themeColor: "#0E1116",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -40,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.className} antialiased`}>
-        <div className="min-h-screen bg-gradient-main">
+        <div className="min-h-screen bg-[#0E1116]">
           {children}
         </div>
       </body>

@@ -1,264 +1,246 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { 
-  ArrowRight, 
-  Sparkles, 
-  Target, 
-  Brain, 
-  Wallet, 
-  TrendingUp,
-  Users,
-  Lightbulb,
-  Briefcase,
-  Leaf 
+import {
+  ArrowRight,
+  Brain,
+  CalendarCheck,
+  CheckCircle2,
+  LineChart,
+  Sparkles,
+  Target,
+  Trophy,
+  Wand2,
 } from "lucide-react";
 import Link from "next/link";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { GlassButton } from "@/components/ui/GlassButton";
+
+const pillars = [
+  {
+    icon: Wand2,
+    title: "AI goal breakdown",
+    body: "Turn a fuzzy ambition into a SMART goal, milestones, weekly habits, risks, mitigations, and the next action to take today.",
+  },
+  {
+    icon: CalendarCheck,
+    title: "Weekly review ritual",
+    body: "A Sunday reset connects what happened this week to what you should change next week, so progress becomes a rhythm instead of a guilt trip.",
+  },
+  {
+    icon: LineChart,
+    title: "Trajectory Score",
+    body: "One glanceable score combines consistency, recency, milestone progress, and outcome movement so users know whether they are actually on pace.",
+  },
+];
+
+const processSteps = [
+  "Name the ambition in plain English",
+  "Clarify the metric and target date",
+  "Choose starter process habits",
+  "Commit to the first action",
+];
+
+const pricing = [
+  {
+    name: "Free",
+    price: "CA$0",
+    features: ["3 active goals", "Core habit tracking", "Basic Trajectory Score", "Capped AI coaching", "2 forgiving streak freezes"],
+  },
+  {
+    name: "Pro Annual",
+    price: "CA$59.99/yr",
+    featured: true,
+    features: ["Unlimited goals and habits", "Full weekly reviews", "AI journaling reflections", "Templates and cited lessons", "Advanced progress analytics"],
+  },
+  {
+    name: "Pro Monthly",
+    price: "CA$9.99/mo",
+    features: ["Everything in Pro", "Unlimited AI coaching", "Data export", "Priority nudges", "Billing portal access"],
+  },
+];
 
 export default function HomePage() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
   return (
-    <main className="min-h-screen flex flex-col">
-      {/* Hero Section */}
-      <section className="flex-1 flex flex-col items-center justify-center px-6 py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center max-w-4xl mx-auto"
-        >
-          {/* Logo/Brand */}
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8"
-          >
-            <div className="inline-flex items-center gap-3 glass-card px-6 py-3 mb-6">
-              <Sparkles className="w-5 h-5 text-yellow-400" />
-              <span className="text-white/80 text-sm font-medium">Your journey to excellence starts here</span>
+    <main className="min-h-screen overflow-hidden bg-[#0E1116] text-white">
+      <section className="relative px-6 py-8 md:px-10">
+        <div className="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-indigo-500/20 blur-[140px]" />
+        <div className="relative mx-auto flex max-w-7xl items-center justify-between">
+          <Link href="/" className="flex items-center gap-3 text-lg font-semibold">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 shadow-glow">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            Trajectory
+          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="hidden rounded-full border border-white/10 px-5 py-2 text-sm text-white/70 transition hover:border-white/25 hover:text-white sm:block">
+              Sign in
+            </Link>
+            <Link href="/signup" className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-[#0E1116] transition hover:bg-white/90">
+              Start free
+            </Link>
+          </div>
+        </div>
+
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 py-20 lg:grid-cols-[1.05fr_0.95fr] lg:py-28">
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.65 }}>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-400/20 bg-indigo-400/10 px-4 py-2 text-sm text-indigo-100">
+              <Brain className="h-4 w-4" />
+              AI-native goal coaching, not another checkbox app
+            </div>
+            <h1 className="max-w-4xl text-5xl font-black tracking-tight text-white md:text-7xl">
+              Turn ambitions into plans you actually finish.
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300 md:text-xl">
+              Trajectory Pro breaks vague goals into SMART outcomes, weekly process habits, and a Sunday review ritual that keeps daily actions connected to long-term results.
+            </p>
+            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+              <Link href="/signup" className="group inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-500 px-7 py-4 font-semibold shadow-glow transition hover:scale-[1.01]">
+                Build my first plan
+                <ArrowRight className="ml-2 h-5 w-5 transition group-hover:translate-x-1" />
+              </Link>
+              <Link href="#system" className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-7 py-4 font-semibold text-white/80 transition hover:border-white/25 hover:bg-white/10 hover:text-white">
+                See the system
+              </Link>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-3 text-sm text-slate-400">
+              <span className="rounded-full bg-white/5 px-3 py-1">Free tier</span>
+              <span className="rounded-full bg-white/5 px-3 py-1">CA$9.99/mo Pro</span>
+              <span className="rounded-full bg-white/5 px-3 py-1">CA$59.99/yr annual</span>
             </div>
           </motion.div>
 
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 text-shadow">
-            <span className="gradient-text from-blue-400 via-purple-400 to-pink-400">
-              Trajectory
-            </span>
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-white/70 mb-12 max-w-2xl mx-auto leading-relaxed">
-            The holistic wellness platform that transforms all 
-            <span className="text-white font-semibold"> 8 dimensions </span> 
-            of your well-being through AI-powered personalization.
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Link href="/signup">
-              <GlassButton variant="primary" size="lg" className="group">
-                Start Your Journey
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </GlassButton>
-            </Link>
-            <Link href="/login">
-              <GlassButton variant="secondary" size="lg">
-                Sign In
-              </GlassButton>
-            </Link>
-          </div>
-        </motion.div>
-
-        {/* Pillar Cards - 8 Dimensions of Wellness */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto px-6 w-full"
-        >
-          <PillarCard
-            icon={<Target className="w-6 h-6" />}
-            title="Physical"
-            description="Optimize fitness, nutrition, and sleep"
-            gradient="from-[#667eea] to-[#764ba2]"
-            delay={0.1}
-          />
-          <PillarCard
-            icon={<Brain className="w-6 h-6" />}
-            title="Mental"
-            description="Build emotional resilience and mindfulness"
-            gradient="from-[#f093fb] to-[#f5576c]"
-            delay={0.15}
-          />
-          <PillarCard
-            icon={<Wallet className="w-6 h-6" />}
-            title="Fiscal"
-            description="Achieve financial security and smart habits"
-            gradient="from-[#4facfe] to-[#00f2fe]"
-            delay={0.2}
-          />
-          <PillarCard
-            icon={<Users className="w-6 h-6" />}
-            title="Social"
-            description="Nurture relationships and community"
-            gradient="from-[#f97316] to-[#fb923c]"
-            delay={0.25}
-          />
-          <PillarCard
-            icon={<Sparkles className="w-6 h-6" />}
-            title="Spiritual"
-            description="Discover purpose and inner peace"
-            gradient="from-[#8b5cf6] to-[#a78bfa]"
-            delay={0.3}
-          />
-          <PillarCard
-            icon={<Lightbulb className="w-6 h-6" />}
-            title="Intellectual"
-            description="Expand knowledge through lifelong learning"
-            gradient="from-[#eab308] to-[#fbbf24]"
-            delay={0.35}
-          />
-          <PillarCard
-            icon={<Briefcase className="w-6 h-6" />}
-            title="Occupational"
-            description="Find career fulfillment and balance"
-            gradient="from-[#22c55e] to-[#4ade80]"
-            delay={0.4}
-          />
-          <PillarCard
-            icon={<Leaf className="w-6 h-6" />}
-            title="Environmental"
-            description="Create harmony with your surroundings"
-            gradient="from-[#14b8a6] to-[#2dd4bf]"
-            delay={0.45}
-          />
-        </motion.div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20 px-6">
-        <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Everything You Need to Thrive
-            </h2>
-            <p className="text-white/60 text-lg max-w-2xl mx-auto">
-              Powered by AI, backed by science, designed for results
-            </p>
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.65, delay: 0.15 }} className="relative">
+            <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-indigo-500/30 to-violet-500/20 blur-3xl" />
+            <div className="relative rounded-[2rem] border border-white/10 bg-[#171A21]/90 p-5 shadow-2xl backdrop-blur-xl">
+              <div className="rounded-3xl border border-white/10 bg-[#0E1116] p-5">
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-400">Trajectory Score</p>
+                    <p className="text-5xl font-black">82</p>
+                  </div>
+                  <div className="rounded-2xl bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-300">On pace</div>
+                </div>
+                <div className="space-y-4">
+                  <GoalPreview title="Run a 5K by October 15" progress="64%" note="3 process habits logged this week" />
+                  <GoalPreview title="Save CA$5,000 emergency fund" progress="38%" note="Weekly review suggests +CA$35/week" />
+                  <GoalPreview title="Finish portfolio case study" progress="71%" note="Next action: write results section" />
+                </div>
+                <div className="mt-6 rounded-2xl border border-violet-400/20 bg-violet-400/10 p-4">
+                  <div className="mb-2 flex items-center gap-2 font-semibold text-violet-100">
+                    <Sparkles className="h-4 w-4" /> Weekly AI insight
+                  </div>
+                  <p className="text-sm leading-6 text-slate-300">
+                    Your highest-consistency weeks start with a Monday 20-minute planning block. Keep that habit and reduce Wednesday workload by one task.
+                  </p>
+                </div>
+              </div>
+            </div>
           </motion.div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FeatureCard
-              icon={<Sparkles className="w-6 h-6 text-yellow-400" />}
-              title="AI Coach"
-              description="Get personalized guidance from our Groq-powered AI that understands your unique journey"
-            />
-            <FeatureCard
-              icon={<TrendingUp className="w-6 h-6 text-green-400" />}
-              title="Progress Tracking"
-              description="Visualize your growth with beautiful charts, streaks, and milestone celebrations"
-            />
-            <FeatureCard
-              icon={<Target className="w-6 h-6 text-blue-400" />}
-              title="Smart Goals"
-              description="Set SMART goals across all life domains and break them into achievable daily habits"
-            />
-            <FeatureCard
-              icon={<Brain className="w-6 h-6 text-purple-400" />}
-              title="Required Reading"
-              description="Curated content from Harvard Health, NIH, and leading experts to deepen your knowledge"
-            />
+      <section id="system" className="border-y border-white/10 bg-[#121621] px-6 py-20 md:px-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-12 max-w-3xl">
+            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.25em] text-indigo-300">The wedge</p>
+            <h2 className="text-3xl font-black md:text-5xl">Solve the input problem before tracking anything.</h2>
+            <p className="mt-5 text-lg leading-8 text-slate-300">
+              Most goal apps wait for users to create a good plan. Trajectory teaches the method while building the plan: outcome metric, target date, process habits, milestones, risks, and a first action.
+            </p>
+          </div>
+          <div className="grid gap-5 md:grid-cols-3">
+            {pillars.map((pillar) => (
+              <div key={pillar.title} className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500">
+                  <pillar.icon className="h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-bold">{pillar.title}</h3>
+                <p className="mt-3 leading-7 text-slate-400">{pillar.body}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 px-6 border-t border-white/10">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-white/40 text-sm">
-            2026 Trajectory. Your path to your best self.
+      <section className="px-6 py-20 md:px-10">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2">
+          <div className="rounded-[2rem] border border-white/10 bg-[#171A21] p-8">
+            <div className="mb-6 flex items-center gap-3">
+              <Target className="h-6 w-6 text-indigo-300" />
+              <h2 className="text-3xl font-black">First-session activation</h2>
+            </div>
+            <div className="space-y-4">
+              {processSteps.map((step, index) => (
+                <div key={step} className="flex items-center gap-4 rounded-2xl bg-white/[0.04] p-4">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-500/20 text-sm font-bold text-indigo-200">{index + 1}</div>
+                  <span className="text-slate-200">{step}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="flex gap-6 text-white/40 text-sm">
-            <Link href="/privacy" className="hover:text-white/60 transition-colors">Privacy</Link>
-            <Link href="/terms" className="hover:text-white/60 transition-colors">Terms</Link>
+          <div className="rounded-[2rem] border border-white/10 bg-[#171A21] p-8">
+            <div className="mb-6 flex items-center gap-3">
+              <Trophy className="h-6 w-6 text-amber-300" />
+              <h2 className="text-3xl font-black">Forgiving retention</h2>
+            </div>
+            <ul className="space-y-4 text-slate-300">
+              {[
+                "Two automatic streak freezes — helpful, not punitive.",
+                "Don't miss twice copy that preserves momentum after a bad day.",
+                "Earn Back restores a broken streak by completing an extra action.",
+                "Milestone celebrations at 7, 30, and 100 days with reduced-motion fallbacks.",
+              ].map((item) => (
+                <li key={item} className="flex gap-3">
+                  <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-emerald-300" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
-      </footer>
+      </section>
+
+      <section className="px-6 pb-24 md:px-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-10 text-center">
+            <h2 className="text-3xl font-black md:text-5xl">Premium, CAD-anchored pricing</h2>
+            <p className="mt-4 text-slate-400">A useful free tier, annual plan promoted, and Pro features tied to the weekly review loop.</p>
+          </div>
+          <div className="grid gap-5 md:grid-cols-3">
+            {pricing.map((tier) => (
+              <div key={tier.name} className={`rounded-[2rem] border p-6 ${tier.featured ? "border-indigo-400/40 bg-indigo-500/10" : "border-white/10 bg-white/[0.04]"}`}>
+                <div className="mb-5 flex items-baseline justify-between">
+                  <h3 className="text-xl font-bold">{tier.name}</h3>
+                  {tier.featured && <span className="rounded-full bg-indigo-400/20 px-3 py-1 text-xs text-indigo-100">Best value</span>}
+                </div>
+                <p className="mb-6 text-3xl font-black">{tier.price}</p>
+                <ul className="space-y-3 text-sm text-slate-300">
+                  {tier.features.map((feature) => (
+                    <li key={feature} className="flex gap-2">
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-300" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
 
-function PillarCard({ 
-  icon, 
-  title, 
-  description, 
-  gradient,
-  delay 
-}: { 
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  gradient: string;
-  delay: number;
-}) {
+function GoalPreview({ title, progress, note }: { title: string; progress: string; note: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay }}
-      whileHover={{ scale: 1.02, y: -5 }}
-      className="relative group"
-    >
-      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} rounded-2xl opacity-50 blur-xl group-hover:opacity-70 transition-opacity`} />
-      <GlassCard className="relative h-full">
-        <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${gradient} mb-4`}>
-          {icon}
-        </div>
-        <h3 className="text-xl font-semibold text-white mb-2">{title}</h3>
-        <p className="text-white/60 text-sm leading-relaxed">{description}</p>
-      </GlassCard>
-    </motion.div>
-  );
-}
-
-function FeatureCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <GlassCard className="flex items-start gap-4">
-        <div className="p-2 rounded-lg bg-white/10">
-          {icon}
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-white mb-1">{title}</h3>
-          <p className="text-white/60 text-sm">{description}</p>
-        </div>
-      </GlassCard>
-    </motion.div>
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+      <div className="mb-2 flex items-center justify-between gap-4">
+        <h3 className="font-semibold text-slate-100">{title}</h3>
+        <span className="text-sm font-bold text-indigo-200">{progress}</span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-white/10">
+        <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" style={{ width: progress }} />
+      </div>
+      <p className="mt-2 text-sm text-slate-400">{note}</p>
+    </div>
   );
 }
