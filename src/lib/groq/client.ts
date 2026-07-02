@@ -90,6 +90,11 @@ ${userContext.challenges?.length ? `- Challenges they mentioned: ${userContext.c
     }
   }
 
+  if (!process.env.GROQ_API_KEY) {
+    const latestUserMessage = [...messages].reverse().find((message) => message.role === "user")?.content || "your goal";
+    return `I can help with that. Supabase/local auth is working, but the AI provider key is not configured on the server yet, so here is a practical fallback:\n\n1. Pick one tiny action for: "${latestUserMessage}".\n2. Make it measurable and schedule it for today.\n3. Keep the streak rule simple: do not miss twice.\n4. Review what worked at the end of the week and adjust the plan.\n\nOnce GROQ_API_KEY is set in Netlify, I will give fully personalized AI coaching here.`;
+  }
+
   const groq = getGroqClient();
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",

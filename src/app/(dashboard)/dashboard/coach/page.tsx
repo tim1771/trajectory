@@ -56,10 +56,26 @@ export default function CoachPage() {
             role: m.role,
             content: m.content,
           })),
+          localContext: profile
+            ? {
+                level: profile.level,
+                streak: profile.currentStreak,
+                tier: profile.tier,
+                challenges: profile.onboardingData?.challenges,
+              }
+            : undefined,
         }),
       });
 
-      const data = await response.json();
+      const rawBody = await response.text();
+      let data: { message?: string; error?: string } = {};
+      try {
+        data = rawBody ? JSON.parse(rawBody) : {};
+      } catch {
+        throw new Error(
+          rawBody?.slice(0, 180) || `Server returned ${response.status} without JSON`
+        );
+      }
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to get response");
@@ -67,7 +83,7 @@ export default function CoachPage() {
 
       const assistantMessage: AIMessage = {
         role: "assistant",
-        content: data.message,
+        content: String(data.message ?? "I received your message, but the coach response was empty. Please try again."),
         timestamp: new Date().toISOString(),
       };
 
