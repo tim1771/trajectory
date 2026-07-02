@@ -68,7 +68,10 @@ export default function DashboardLayout({
     const checkAuth = async () => {
       const localUser = getLocalSession();
       if (localUser) {
-        setProfile(getLocalProfile(localUser.id) || makeDefaultProfile(localUser));
+        const currentProfile = useUserStore.getState().profile;
+        if (!currentProfile || currentProfile.userId !== localUser.id) {
+          setProfile(getLocalProfile(localUser.id) || makeDefaultProfile(localUser));
+        }
         return;
       }
 
@@ -113,6 +116,11 @@ export default function DashboardLayout({
 
     checkAuth();
   }, [router, setProfile, pathname]);
+
+  useEffect(() => {
+    const routes = ["/dashboard", ...pillarItems.map((item) => item.href), ...toolItems.map((item) => item.href)];
+    routes.forEach((route) => router.prefetch(route));
+  }, [router]);
 
   const handleSignOut = async () => {
     const supabase = createClient();
