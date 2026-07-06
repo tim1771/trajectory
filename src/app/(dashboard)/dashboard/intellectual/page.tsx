@@ -96,44 +96,41 @@ export default function IntellectualPage() {
   }, []);
 
   const handleAddHabit = async (name: string, xp: number = 10) => {
-    console.log("handleAddHabit called with:", name, xp);
-    if (!name.trim()) {
-      console.log("Empty name, returning");
-      return;
-    }
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
     
     setLoading(true);
-    console.log("Loading set to true");
     sound.click();
     
     try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        console.log("No user found");
+      const localUser = getLocalSession();
+      if (localUser) {
+        addHabit(addLocalHabit(localUser.id, "intellectual", trimmedName, xp));
+        sound.success();
+        setShowAddModal(false);
+        setNewHabitName("");
         return;
       }
 
-      console.log("Inserting habit for user:", user.id);
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) return;
+
       const { data, error } = await supabase
         .from("habits")
         .insert({
           user_id: user.id,
           pillar: "intellectual",
-          name,
+          name: trimmedName,
           frequency: "daily",
           xp_reward: xp,
         })
         .select()
         .single();
 
-      if (error) {
-        console.error("Database error:", error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log("Habit inserted successfully:", data);
       addHabit({
         id: data.id,
         userId: data.user_id,
@@ -150,14 +147,11 @@ export default function IntellectualPage() {
       sound.success();
       setShowAddModal(false);
       setNewHabitName("");
-      console.log("Habit added successfully, modal closed");
     } catch (err) {
       console.error("Failed to add habit:", err);
       sound.error();
-      alert(`Failed to add habit: ${err}`);
     } finally {
       setLoading(false);
-      console.log("Loading set to false");
     }
   };
 

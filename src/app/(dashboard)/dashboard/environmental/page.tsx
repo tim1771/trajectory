@@ -96,12 +96,22 @@ export default function EnvironmentalPage() {
   }, []);
 
   const handleAddHabit = async (name: string, xp: number = 10) => {
-    if (!name.trim()) return;
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
     
     setLoading(true);
     sound.click();
     
     try {
+      const localUser = getLocalSession();
+      if (localUser) {
+        addHabit(addLocalHabit(localUser.id, "environmental", trimmedName, xp));
+        sound.success();
+        setShowAddModal(false);
+        setNewHabitName("");
+        return;
+      }
+
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -112,7 +122,7 @@ export default function EnvironmentalPage() {
         .insert({
           user_id: user.id,
           pillar: "environmental",
-          name,
+          name: trimmedName,
           frequency: "daily",
           xp_reward: xp,
         })
