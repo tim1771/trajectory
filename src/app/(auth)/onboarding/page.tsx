@@ -270,7 +270,7 @@ function WelcomeStep({ data, updateData }: { data: Partial<OnboardingData>; upda
             }`}
           >
             <Image
-              src="/avatars/m1.png"
+              src="/avatars/m1-v2.png"
               alt="Male Avatar"
               width={120}
               height={120}
@@ -302,7 +302,7 @@ function WelcomeStep({ data, updateData }: { data: Partial<OnboardingData>; upda
             }`}
           >
             <Image
-              src="/avatars/f1.png"
+              src="/avatars/f1-v2.png"
               alt="Female Avatar"
               width={120}
               height={120}

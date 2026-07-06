@@ -264,7 +264,7 @@ export default function SettingsPage() {
                 }`}
               >
                 <Image
-                  src="/avatars/m1.png"
+                  src="/avatars/m1-v2.png"
                   alt="Male Avatar"
                   width={80}
                   height={80}
@@ -296,7 +296,7 @@ export default function SettingsPage() {
                 }`}
               >
                 <Image
-                  src="/avatars/f1.png"
+                  src="/avatars/f1-v2.png"
                   alt="Female Avatar"
                   width={80}
                   height={80}

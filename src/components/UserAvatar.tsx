@@ -37,7 +37,7 @@ function getAvatarTier(level: number): { tier: number; title: string } {
 
 function getAvatarPath(gender: "male" | "female", tier: number): string {
   const prefix = gender === "male" ? "m" : "f";
-  return `/avatars/${prefix}${tier}.png`;
+  return `/avatars/${prefix}${tier}-v2.png`;
 }
 
 interface UserAvatarProps {
