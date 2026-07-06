@@ -19,6 +19,7 @@ import { GlassButton } from "@/components/ui/GlassButton";
 import { GlassInput } from "@/components/ui/GlassInput";
 import { useUserStore } from "@/stores/userStore";
 import { createClient } from "@/lib/supabase/client";
+import { getLocalSession } from "@/lib/localAuth";
 
 interface Friend {
   id: string;
@@ -50,8 +51,18 @@ export default function CommunityPage() {
   const [searchEmail, setSearchEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchResult, setSearchResult] = useState<any>(null);
+  const [localMode, setLocalMode] = useState(false);
 
   useEffect(() => {
+    const localUser = getLocalSession();
+    setLocalMode(Boolean(localUser));
+    if (localUser) {
+      setFriends([]);
+      setPendingRequests([]);
+      setFeed([]);
+      return;
+    }
+
     if (activeTab === "friends") {
       fetchFriends();
     } else {
@@ -60,6 +71,8 @@ export default function CommunityPage() {
   }, [activeTab]);
 
   const fetchFriends = async () => {
+    if (getLocalSession()) return;
+
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -123,6 +136,8 @@ export default function CommunityPage() {
   };
 
   const fetchFeed = async () => {
+    if (getLocalSession()) return;
+
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -171,6 +186,11 @@ export default function CommunityPage() {
   };
 
   const handleSearch = async () => {
+    if (getLocalSession()) {
+      alert("Community search requires cloud sync. Demo mode keeps your data local on this device.");
+      return;
+    }
+
     if (!searchEmail.trim()) return;
     
     setLoading(true);
@@ -276,6 +296,15 @@ export default function CommunityPage() {
           Connect with others on their wellness journey
         </p>
       </div>
+
+      {localMode && (
+        <GlassCard className="p-6 border border-purple-500/20 bg-purple-500/10">
+          <h2 className="text-lg font-semibold text-white mb-2">Community is cloud-only in demo mode</h2>
+          <p className="text-white/60 text-sm">
+            Your demo/local account stays on this device, so friends, public feeds, requests, and likes are disabled until you sign into a cloud account.
+          </p>
+        </GlassCard>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -22,6 +22,8 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { useUserStore } from "@/stores/userStore";
 import { createClient } from "@/lib/supabase/client";
+import { getLocalSession, saveLocalProfile } from "@/lib/localAuth";
+import { addLocalReadingProgress, getLocalReadingProgress } from "@/lib/localData";
 import type { ReadingContent, WellnessPillar } from "@/types";
 
 // Curated reading content from reputable sources
@@ -345,6 +347,12 @@ export default function LibraryPage() {
   // Load completed articles from database on mount
   useEffect(() => {
     const loadProgress = async () => {
+      const localUser = getLocalSession();
+      if (localUser) {
+        setCompletedArticles(getLocalReadingProgress(localUser.id));
+        return;
+      }
+
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -378,12 +386,26 @@ export default function LibraryPage() {
 
     setLoading(true);
     try {
+      const article = READING_CONTENT.find((c) => c.id === id);
+      if (!article) return;
+
+      const localUser = getLocalSession();
+      if (localUser) {
+        const nextCompleted = addLocalReadingProgress(localUser.id, id);
+        setCompletedArticles(nextCompleted);
+        useUserStore.getState().addXP(article.xpReward);
+        const nextProfile = useUserStore.getState().profile;
+        if (nextProfile) saveLocalProfile(nextProfile);
+        if (typeof window !== 'undefined') {
+          const { useSoundEffects } = await import("@/lib/sounds");
+          useSoundEffects().success();
+        }
+        return;
+      }
+
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
-      const article = READING_CONTENT.find((c) => c.id === id);
-      if (!article) return;
 
       // Save reading progress to database
       await supabase.from("reading_progress").upsert({

@@ -21,6 +21,8 @@ import { GlassButton } from "@/components/ui/GlassButton";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { useUserStore } from "@/stores/userStore";
 import { createClient } from "@/lib/supabase/client";
+import { getLocalSession } from "@/lib/localAuth";
+import { getLocalChallengeProgress, joinLocalChallenge } from "@/lib/localData";
 import type { WellnessPillar } from "@/types";
 
 interface Challenge {
@@ -38,6 +40,23 @@ interface Challenge {
   isCompleted: boolean;
 }
 
+const LOCAL_DEMO_CHALLENGES: Challenge[] = [
+  {
+    id: "local-weekly-momentum",
+    title: "Demo Momentum Week",
+    description: "Complete any three habits this week while using local demo mode.",
+    pillar: null,
+    targetType: "habit_count",
+    targetValue: 3,
+    xpReward: 50,
+    startDate: new Date().toISOString(),
+    endDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(),
+    participants: 1,
+    userProgress: 0,
+    isCompleted: false,
+  },
+];
+
 export default function ChallengesPage() {
   const { profile } = useUserStore();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
@@ -48,9 +67,26 @@ export default function ChallengesPage() {
   }, []);
 
   const fetchChallenges = async () => {
+    const localUser = getLocalSession();
+    if (localUser) {
+      const progress = getLocalChallengeProgress(localUser.id);
+      setChallenges(
+        LOCAL_DEMO_CHALLENGES.map((challenge) => ({
+          ...challenge,
+          userProgress: progress[challenge.id]?.progress || 0,
+          isCompleted: progress[challenge.id]?.completed || false,
+        }))
+      );
+      setLoading(false);
+      return;
+    }
+
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     // Get active challenges
     const today = new Date().toISOString().split("T")[0];
@@ -108,6 +144,13 @@ export default function ChallengesPage() {
   };
 
   const handleJoinChallenge = async (challengeId: string) => {
+    const localUser = getLocalSession();
+    if (localUser) {
+      joinLocalChallenge(localUser.id, challengeId);
+      fetchChallenges();
+      return;
+    }
+
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;

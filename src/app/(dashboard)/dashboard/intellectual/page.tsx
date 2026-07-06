@@ -20,6 +20,8 @@ import { GlassInput } from "@/components/ui/GlassInput";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { useUserStore } from "@/stores/userStore";
 import { createClient } from "@/lib/supabase/client";
+import { getLocalSession } from "@/lib/localAuth";
+import { addLocalHabit, archiveLocalHabit, completeLocalHabit, getLocalHabits } from "@/lib/localHabits";
 import { useSoundEffects } from "@/lib/sounds";
 import type { Habit } from "@/types";
 
@@ -52,6 +54,14 @@ export default function IntellectualPage() {
 
   useEffect(() => {
     const fetchHabits = async () => {
+      const localUser = getLocalSession();
+      if (localUser) {
+        const localHabits = getLocalHabits(localUser.id, "intellectual");
+        const otherHabits = useUserStore.getState().habits.filter((h) => h.pillar !== "intellectual");
+        setHabits([...otherHabits, ...localHabits]);
+        return;
+      }
+
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -77,7 +87,7 @@ export default function IntellectualPage() {
           archived: h.archived,
           completions: h.habit_completions || [],
         }));
-        const otherHabits = habits.filter((h) => h.pillar !== "intellectual");
+        const otherHabits = useUserStore.getState().habits.filter((h) => h.pillar !== "intellectual");
         setHabits([...otherHabits, ...formattedHabits]);
       }
     };
@@ -153,6 +163,13 @@ export default function IntellectualPage() {
 
   const handleDeleteHabit = async (habitId: string) => {
     try {
+      const localUser = getLocalSession();
+      if (localUser) {
+        archiveLocalHabit(localUser.id, habitId);
+        removeHabit(habitId);
+        return;
+      }
+
       const supabase = createClient();
       await supabase
         .from("habits")
@@ -173,6 +190,22 @@ export default function IntellectualPage() {
     if (!isCompletedToday && !completing) {
       setCompleting(habit.id);
       try {
+        const localUser = getLocalSession();
+        if (localUser) {
+          const localResult = completeLocalHabit(localUser.id, habit.id);
+          if (!localResult) return;
+
+          sound.success();
+          const updatedHabits = useUserStore.getState().habits.map((h) =>
+            h.id === habit.id
+              ? { ...h, completions: [...(h.completions || []), localResult.completion] }
+              : h
+          );
+          setHabits(updatedHabits as any);
+          useUserStore.getState().addXP(habit.xpReward);
+          return;
+        }
+
         const response = await fetch("/api/habits/complete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

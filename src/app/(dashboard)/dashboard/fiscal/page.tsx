@@ -20,6 +20,8 @@ import { GlassInput } from "@/components/ui/GlassInput";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { useUserStore } from "@/stores/userStore";
 import { createClient } from "@/lib/supabase/client";
+import { getLocalSession } from "@/lib/localAuth";
+import { addLocalHabit, archiveLocalHabit, completeLocalHabit, getLocalHabits } from "@/lib/localHabits";
 import { useSoundEffects } from "@/lib/sounds";
 import type { Habit } from "@/types";
 
@@ -52,6 +54,14 @@ export default function FiscalPage() {
 
   useEffect(() => {
     const fetchHabits = async () => {
+      const localUser = getLocalSession();
+      if (localUser) {
+        const localHabits = getLocalHabits(localUser.id, "fiscal");
+        const otherHabits = useUserStore.getState().habits.filter((h) => h.pillar !== "fiscal");
+        setHabits([...otherHabits, ...localHabits]);
+        return;
+      }
+
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -77,7 +87,7 @@ export default function FiscalPage() {
           archived: h.archived,
           completions: h.habit_completions || [],
         }));
-        const otherHabits = habits.filter((h) => h.pillar !== "fiscal");
+        const otherHabits = useUserStore.getState().habits.filter((h) => h.pillar !== "fiscal");
         setHabits([...otherHabits, ...formattedHabits]);
       }
     };
@@ -86,8 +96,19 @@ export default function FiscalPage() {
   }, []);
 
   const handleAddHabit = async (name: string, xp: number = 10) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
+
     setLoading(true);
     try {
+      const localUser = getLocalSession();
+      if (localUser) {
+        addHabit(addLocalHabit(localUser.id, "fiscal", trimmedName, xp));
+        setShowAddModal(false);
+        setNewHabitName("");
+        return;
+      }
+
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -98,7 +119,7 @@ export default function FiscalPage() {
         .insert({
           user_id: user.id,
           pillar: "fiscal",
-          name,
+          name: trimmedName,
           frequency: "daily",
           xp_reward: xp,
         })
@@ -131,6 +152,13 @@ export default function FiscalPage() {
 
   const handleDeleteHabit = async (habitId: string) => {
     try {
+      const localUser = getLocalSession();
+      if (localUser) {
+        archiveLocalHabit(localUser.id, habitId);
+        removeHabit(habitId);
+        return;
+      }
+
       const supabase = createClient();
       await supabase
         .from("habits")
@@ -151,6 +179,22 @@ export default function FiscalPage() {
     if (!isCompletedToday && !completing) {
       setCompleting(habit.id);
       try {
+        const localUser = getLocalSession();
+        if (localUser) {
+          const localResult = completeLocalHabit(localUser.id, habit.id);
+          if (!localResult) return;
+
+          sound.success();
+          const updatedHabits = useUserStore.getState().habits.map((h) =>
+            h.id === habit.id
+              ? { ...h, completions: [...(h.completions || []), localResult.completion] }
+              : h
+          );
+          setHabits(updatedHabits as any);
+          useUserStore.getState().addXP(habit.xpReward);
+          return;
+        }
+
         const response = await fetch("/api/habits/complete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

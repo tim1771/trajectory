@@ -51,25 +51,15 @@ export default function LoginPage() {
     }
   };
 
-  const handleGithubLogin = async () => {
+  const handleDemoLogin = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "github",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (error) throw error;
+      await continueAsDemoUser();
+      router.push("/dashboard");
+      router.refresh();
     } catch (err: any) {
-      try {
-        await continueAsDemoUser();
-        router.push("/dashboard");
-        router.refresh();
-      } catch (localErr: any) {
-        setError(localErr.message || err.message || "Failed to continue in demo mode");
-      }
+      setError(err.message || "Failed to continue in demo mode");
       setLoading(false);
     }
   };
@@ -162,7 +152,7 @@ export default function LoginPage() {
             variant="secondary"
             size="lg"
             className="w-full"
-            onClick={handleGithubLogin}
+            onClick={handleDemoLogin}
             disabled={loading}
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">

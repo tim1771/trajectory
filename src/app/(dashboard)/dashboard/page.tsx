@@ -30,6 +30,8 @@ import { useUserStore } from "@/stores/userStore";
 import { getGreeting, getLevelFromXP } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { getLocalSession } from "@/lib/localAuth";
+import { completeLocalHabit, getLocalHabits } from "@/lib/localHabits";
+import { calculateLocalTodayStats } from "@/lib/localData";
 import { AvatarShowcase } from "@/components/UserAvatar";
 import type { WellnessPillar } from "@/types";
 
@@ -43,7 +45,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchHabits = async () => {
-      if (getLocalSession()) return;
+      const localUser = getLocalSession();
+      if (localUser) {
+        const localHabits = getLocalHabits(localUser.id);
+        setHabits(localHabits);
+        setTodayStats(calculateLocalTodayStats(localHabits));
+        return;
+      }
 
       try {
         const supabase = createClient();
@@ -449,34 +457,50 @@ function PillarCard({
 }
 
 function HabitItem({ habit }: { habit: any }) {
+  const { setHabits } = useUserStore();
   const [completed, setCompleted] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
-    const isCompletedToday = habit.completions?.some(
-      (c: any) => c.completed_at?.startsWith(today)
-    );
+    const isCompletedToday = habit.completions?.some((c: any) => {
+      const completedAt = c.completed_at || c.completedAt;
+      return completedAt?.startsWith(today);
+    });
     setCompleted(isCompletedToday);
   }, [habit.completions, today]);
 
   const handleToggle = async () => {
+    if (completed) return;
+
+    const localUser = getLocalSession();
+    if (localUser) {
+      setIsAnimating(true);
+      const result = completeLocalHabit(localUser.id, habit.id);
+      if (!result) {
+        setIsAnimating(false);
+        return;
+      }
+      const localHabits = getLocalHabits(localUser.id);
+      setHabits(localHabits);
+      setCompleted(true);
+      setTimeout(() => setIsAnimating(false), 500);
+      return;
+    }
+
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) return;
 
-    if (!completed) {
-      setIsAnimating(true);
-      await supabase.from("habit_completions").insert({
-        habit_id: habit.id,
-        user_id: user.id,
-        completed_at: new Date().toISOString(),
-      });
-      setTimeout(() => setIsAnimating(false), 500);
-    }
-    
-    setCompleted(!completed);
+    setIsAnimating(true);
+    await supabase.from("habit_completions").insert({
+      habit_id: habit.id,
+      user_id: user.id,
+      completed_at: new Date().toISOString(),
+    });
+    setTimeout(() => setIsAnimating(false), 500);
+    setCompleted(true);
   };
 
   const pillarColors: Record<string, string> = {

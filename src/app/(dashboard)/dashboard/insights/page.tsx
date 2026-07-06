@@ -26,6 +26,9 @@ import { StaggeredList, StaggeredItem, FadeInOnScroll } from "@/components/ui/St
 import { CountUp } from "@/components/ui/AnimatedCounter";
 import Link from "next/link";
 import type { WellnessPillar } from "@/types";
+import { getLocalSession } from "@/lib/localAuth";
+import { getLocalHabits } from "@/lib/localHabits";
+import { calculateLocalInsights } from "@/lib/localData";
 
 interface PillarScore {
   pillar: WellnessPillar;
@@ -106,6 +109,14 @@ export default function InsightsPage() {
   useEffect(() => {
     async function fetchInsights() {
       try {
+        const localUser = getLocalSession();
+        if (localUser) {
+          setInsights(calculateLocalInsights(getLocalHabits(localUser.id)) as UserInsights);
+          setCorrelations([]);
+          setHabitStacks([]);
+          return;
+        }
+
         const [insightsRes, correlationsRes, stacksRes] = await Promise.all([
           fetch("/api/insights?type=full"),
           fetch("/api/insights?type=correlations"),

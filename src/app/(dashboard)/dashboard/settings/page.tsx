@@ -26,6 +26,8 @@ import { GlassButton } from "@/components/ui/GlassButton";
 import { GlassInput } from "@/components/ui/GlassInput";
 import { useUserStore } from "@/stores/userStore";
 import { createClient } from "@/lib/supabase/client";
+import { getLocalSession, saveLocalProfile } from "@/lib/localAuth";
+import { buildLocalExport, getLocalPrivacy, saveLocalPrivacy, type LocalPrivacySettings } from "@/lib/localData";
 import { useSoundEffects } from "@/lib/sounds";
 import type { OnboardingData } from "@/types";
 
@@ -45,8 +47,8 @@ export default function SettingsPage() {
     achievements: true,
     streakWarning: true,
   });
-  const [privacy, setPrivacy] = useState({
-    profileVisibility: "friends" as "public" | "friends" | "private",
+  const [privacy, setPrivacy] = useState<LocalPrivacySettings>({
+    profileVisibility: "friends",
     showStreak: true,
     showLevel: true,
     showAchievements: true,
@@ -60,9 +62,19 @@ export default function SettingsPage() {
   }, []);
 
   const fetchPrivacySettings = async () => {
+    const localUser = getLocalSession();
+    if (localUser) {
+      setPrivacy(getLocalPrivacy(localUser.id));
+      setPrivacyLoading(false);
+      return;
+    }
+
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setPrivacyLoading(false);
+      return;
+    }
 
     const { data } = await supabase
       .from("user_privacy")
@@ -86,6 +98,14 @@ export default function SettingsPage() {
   const handleSavePrivacy = async () => {
     setSaving(true);
     try {
+      const localUser = getLocalSession();
+      if (localUser) {
+        saveLocalPrivacy(localUser.id, privacy);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+        return;
+      }
+
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -114,17 +134,35 @@ export default function SettingsPage() {
   const handleSaveProfile = async () => {
     setSaving(true);
     try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) return;
-
       // Get current onboarding data and update gender
       const currentOnboardingData = (profile?.onboardingData || {}) as Partial<OnboardingData>;
       const updatedOnboardingData: Partial<OnboardingData> = {
         ...currentOnboardingData,
         gender: avatarGender,
       };
+
+      const localUser = getLocalSession();
+      if (localUser && profile) {
+        const updatedProfile = {
+          ...profile,
+          displayName,
+          onboardingData: updatedOnboardingData as OnboardingData,
+        };
+        updateProfile({
+          displayName,
+          onboardingData: updatedOnboardingData as OnboardingData,
+        });
+        saveLocalProfile(updatedProfile);
+        setSaved(true);
+        sound.success();
+        setTimeout(() => setSaved(false), 2000);
+        return;
+      }
+
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) return;
 
       await supabase
         .from("user_profiles")
@@ -151,24 +189,31 @@ export default function SettingsPage() {
   };
 
   const handleExportData = async () => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) return;
+    const localUser = getLocalSession();
+    let exportData: any;
 
-    // Fetch all user data
-    const [habits, completions, profile] = await Promise.all([
-      supabase.from("habits").select("*").eq("user_id", user.id),
-      supabase.from("habit_completions").select("*").eq("user_id", user.id),
-      supabase.from("user_profiles").select("*").eq("user_id", user.id).single(),
-    ]);
+    if (localUser) {
+      exportData = buildLocalExport(localUser.id, profile);
+    } else {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) return;
 
-    const exportData = {
-      profile: profile.data,
-      habits: habits.data,
-      completions: completions.data,
-      exportedAt: new Date().toISOString(),
-    };
+      // Fetch all user data
+      const [habits, completions, profile] = await Promise.all([
+        supabase.from("habits").select("*").eq("user_id", user.id),
+        supabase.from("habit_completions").select("*").eq("user_id", user.id),
+        supabase.from("user_profiles").select("*").eq("user_id", user.id).single(),
+      ]);
+
+      exportData = {
+        profile: profile.data,
+        habits: habits.data,
+        completions: completions.data,
+        exportedAt: new Date().toISOString(),
+      };
+    }
 
     // Download as JSON
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
@@ -613,7 +658,7 @@ export default function SettingsPage() {
         <div className="space-y-4">
           <button
             onClick={handleExportData}
-            disabled={profile?.tier === "free"}
+            disabled={profile?.tier === "free" && !getLocalSession()}
             className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <div className="flex items-center gap-3">
@@ -625,7 +670,7 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
-            {profile?.tier === "free" && (
+            {profile?.tier === "free" && !getLocalSession() && (
               <span className="text-xs px-2 py-1 rounded bg-yellow-500/20 text-yellow-400">
                 Premium
               </span>
